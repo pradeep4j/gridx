@@ -1,104 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, FormGroup, ImageList, Select, FormControl, MenuItem, InputLabel, styled, Button, ImageListItem, FormLabel } from '@mui/material';
+import { Typography, FormGroup, FormControl, styled, Button, TextField, FormLabel, TablePagination } from '@mui/material';
 import Loading from "../../components/Loading";
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
-import { addoffer } from '../../routes/api';
+import { addnews, allnews } from '../../routes/api';
+import Allnewsrecord from './Allnewsrecord';
+import { Table, Row, Col } from 'react-bootstrap';
+import '../../hide.css';
 const Addnews = () => {
         const navigate = useNavigate();
-       // const [duration, setDuration] = useState('1');
+        const [dataPage, setDataPage] = useState(0);
+        const [page, setPage] = useState(0);
+        const [rowsPerPage, setRowsPerPage] = useState(5);
         const [spinner, setSpinner] = useState(false);
-        const [image, setImage] = useState('');
+        const [allnewsContent, setallnewsContent] = useState([]);
+        const handleChangePage = (event, newPage) => setPage(newPage);
+
+        const handleChangeRowsPerPage = (event) => {
+                setRowsPerPage(parseInt(event.target.value, 2));
+                setPage(0);
+        };
         const initialValues = {
-                duration: '',
-                image: ''
+                news: ''
         }
         const schema = Yup.object({
-                duration: Yup.string()
-                        .required("Duration is required!"),
-                image: Yup.mixed()
-                        .nullable()
-                        .required("Image is required!")
-                        .test('type', "We only support jpeg/jpg/png/bmp formats", function (value) {
-                                //alert('Here='+value.type)
-                                return value && (value.type === "image/jpeg" ||
-                                        value.type === "image/bmp" ||
-                                        value.type === "image/jpg" ||
-                                        value.type === "image/png")
-                        })
+                news: Yup.string()
+                        .required("New content is required!")
         })
         const formik = useFormik({
                 initialValues: initialValues,
                 validationSchema: schema,
                 onSubmit: (values, { resetForm }) => {
-                        onAddOffer(values, resetForm);
+                        onAddNews(values, resetForm);
                 }
-        })
-        const handleProductImageUpload = (e) => {
-                const file = e.target.files[0];
-
-                TransformFileData(file);
-        };
-        //reading image using The FileReader object lets web applications asynchronously read the contents of files (or raw data buffers) stored on the user's computer, using File or Blob objects to specify the file or data to read.
-        const TransformFileData = (file) => {
-                const reader = new FileReader();
-                const fileType = file.type;
-                let types = false;
-                if (fileType !== "image/jpeg" && fileType !== "image/bmp" && fileType !== "image/jpg" && fileType !== "image/png") {
-                        types = true;
-                }
-                else {
-                        types = false;
-                }
-                if (types === false) {
-                        if (file) {
-                                reader.readAsDataURL(file);
-                                reader.onloadend = () => {
-                                        setImage(reader.result);
-                                }
+        });
+        const getallnews = async () => {
+                
+                await allnews().then(response => {
+                       // setSpinner(true);
+                        if (response.status === 201) {
+                              //  setSpinner(false);
+                                setallnewsContent(response.data);
                         }
+                        else {
+                              //  setSpinner(false);
+                                toast.error(response.data, {
+                                        position: "bottom-right",
+                                        hideProgressBar: false,
+                                        progress: undefined,
+                                });
+                        }
+                }).catch((error) => {
+                      //  setSpinner(false);
+                      console.log(error.message);
+                      /*  toast.error(error.message, {
+                                position: "bottom-right",
+                                hideProgressBar: false,
+                                progress: undefined,
+                        });*/
+                });
+        }
+        useEffect(() => {
+                //fetchign all news
+                getallnews();
+                setPage(0);
+        }, [dataPage]);
+        let listContent;
+        let count = 0;
+        if (spinner) {
+                listContent = <tr><td colSpan='4'><h5>Loading...</h5></td></tr>
+        }
+        else {
+                count = allnewsContent?.length;
+                {
+                        allnewsContent && allnewsContent?.length > 0 ?
+                                (listContent = allnewsContent.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((news) => (<Allnewsrecord Allnewsrecord={news} />))) : (listContent = <tr><td colSpan='4'><h5>No record found</h5></td></tr>)
                 }
-                else {
-                        setImage("");
-                }
-        };
-        const onAddOffer = async (val) => {
+        }
+
+        const onAddNews = async (val) => {
 
                 const postBody = {
-                        name: val.name,
-                        image: image
+                        news: val.news
                 }
-                setSpinner(true);
-                await addoffer(postBody).then(response => {
-                        document.getElementById("submitting").innerText = "Adding Offer...Please wait";
+                
+                await addnews(postBody).then(response => {
+                       // setSpinner(true);
+                        document.getElementById("submitting").innerText = "Adding News...Please wait";
                         document.getElementById("submitting").disabled = true;
                         if (response.status === 201) {
-                                toast.success('Offer Added Successfully!', {
+                                setSpinner(false);
+                                toast.success('News Added Successfully!', {
                                         position: "bottom-right",
                                         hideProgressBar: false,
                                         progress: undefined,
                                 });
                         }
                         else {
+                                setSpinner(false);
                                 toast.error(response.data, {
                                         position: "bottom-right",
                                         hideProgressBar: false,
                                         progress: undefined,
                                 });
-                                document.getElementById("submitting").innerText = "Add Offer";
+                                document.getElementById("submitting").innerText = "Add News";
                                 document.getElementById("submitting").disabled = false;
                         }
 
-                        setSpinner(false);
+                       // setSpinner(false);
                 }).catch((error) => {
+                        setSpinner(false);
                         toast.error(error.message, {
                                 position: "bottom-right",
                                 hideProgressBar: false,
                                 progress: undefined,
                         });
-                        document.getElementById("submitting").innerText = "Add Offer";
+                        document.getElementById("submitting").innerText = "Add News";
                         document.getElementById("submitting").disabled = false;
                 });
 
@@ -106,61 +125,70 @@ const Addnews = () => {
         return (
                 <Container>
 
-                        <Typography variant="h5">Add Offersssssdsd<Ptags>(All the field having * are required)</Ptags></Typography>
+                        <Typography variant="h5">Add News<Ptags>(All the field having * are required)</Ptags></Typography>
                         {spinner && <Loading />}
                         <FormControl>
-                                <InputLabel required error={formik.touched.duration && Boolean(formik.errors.duration)}
-                                        helperText={formik.touched.duration && formik.errors.duration}>Offer Type</InputLabel>
-                                <Select
-                                        value={formik.values.duration}
-                                        label="Duration"
-                                        name="duration"
-                                        onChange={formik.handleChange}
-                                        error={formik.touched.duration && Boolean(formik.errors.duration)}
-                                        helperText={formik.touched.duration && formik.errors.duration}
-                                >
-                                        <MenuItem value={1}>Before Login</MenuItem>
-                                        <MenuItem value={2}>After Login</MenuItem>
-                                </Select>
-                        <Spannings id="duration-error">{(formik.touched.duration && formik.errors.duration)?<div>{formik.errors.duration}</div>:''}   </Spannings> 
+                                <TextField value={formik.values.news}
+                                        label="Add News"
+                                        name="news"
+                                        onChange={formik.handleChange} required
+                                        multiline
+                                        rows={4}
+                                        error={formik.touched.news && Boolean(formik.errors.news)}
+                                        helperText={formik.touched.news && formik.errors.news} />
                         </FormControl>
                         <FormControl>
-                                <ImageList>
+                                <Buttons variant="contained" id="submitting" type="submit" onClick={(e) => formik.handleSubmit()}>Add News</Buttons>
+                        </FormControl>
+                        <Row className='align-items-center'>
+                                <Col>
+                                        <center><h4>All news ({`${count || 0}`})</h4></center>
+                                </Col>
+                        </Row>
+                        {spinner ? (
+                        <Loading />
+                        ) :
+                        (<div className='container mt-5' >
+                                <div className='row'>
+                                        <div className='col-md-11'>
+                                                <div className='card'>
+                                                        
+                                                        <Table scope="col"
+                                                                striped
+                                                                bordered
+                                                                responsive
+                                                                className='table-sm text-center'>
+                                                                <thead className='fonts'>
+                                                                        <tr><td style={{ widtd:'10px' }}>#</td><td style={{ width:'700px',textAlign:'center' }}>News</td>
+                                                                                <td style={{ width:'150px',textAlign:'center' }}>Status</td><td style={{ width:'150px',textAlign:'center' }}>Action</td>
+                                                                        </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                        {listContent}
+                                                                </tbody>
+                                                        </Table>
+                                                        <TablePagination
+                                                                rowsPerPageOptions={[0]}
+                                                                component="div"
+                                                                count={count}
+                                                                rowsPerPage={rowsPerPage}
+                                                                page={page}
+                                                                onPageChange={handleChangePage}
+                                                                onRowsPerPageChange={handleChangeRowsPerPage}
+                                                        />
 
-                                        <Ptags ><Typography style={{fontSize:'13px'}}>Choose an image</Typography>
-                                                <input
-                                                        id="image"
-                                                        accept="image/*"
-                                                        name="image"
-                                                        type="file"
-                                                        onChange={(e) => {
-                                                                handleProductImageUpload(e); formik.setTouched({
-                                                                        ...formik.touched.image
-                                                                }); formik.setFieldValue("image", e.target.files[0])
-                                                        }}
-                                                />
-                                        </Ptags>
-                                        <ImagePreview>
-                                                {image ? (
-                                                        <>
-                                                                <img src={image} alt="error!" />
-                                                        </>
-                                                ) : (
-                                                        <p>Offer image upload preview will appear here!</p>
-                                                )}
-                                        </ImagePreview>
-                                </ImageList>
-                                <Spannings id="iamges">{(formik.touched.image && formik.errors.image) ? <div>{formik.errors.image}</div> : null}</Spannings>
-                        </FormControl>
-                        <FormControl>
-                                <Buttons variant="contained" id="submitting" type="submit" onClick={(e) => formik.handleSubmit()}>Add Offer</Buttons>
-                        </FormControl>
-                </Container>)
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+                        )
+                        }
+                </Container>);
 }
 
 export default Addnews;
 const Container = styled(FormGroup)`
-width: 40%;
+width: 60%;
 margin: 3% auto 0 auto;
 & > div {
     margin-top:10px;
@@ -176,19 +204,6 @@ font-size:12px;
 const Buttons = styled(Button)`
 width: 40%;
 `
-const ImagePreview = styled(ImageListItem)`
-  border: 1px solid rgb(183, 183, 183);
-  max-width: 100px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgb(78, 78, 78);
-
-  img {
-    max-width: 100%;
-  }
-`;
 const Spannings = styled(FormLabel)`
 color: #d32f2f;
 font-size:13px;

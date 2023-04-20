@@ -11,12 +11,21 @@ export const logout = async() => {
 }
 export const addoffer = async(data) => {
     const config = {
-        headers: {
+       /* headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
-        }
+        }*/
     }
-    return await axios.post(`${URL}/add-user`,data,config);
+    return await axios.post(`${URL}/addoffer`,data/*,config*/);
+}
+export const addnews = async(data) => {
+    const config = {
+       /* headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }*/
+    }
+    return await axios.post(`${URL}/addnews`,data/*,config*/);
 }
 export const allUsers = async(id) => {
     const config = {
@@ -27,23 +36,32 @@ export const allUsers = async(id) => {
     }
     return await axios.get(`${URL}/allUsers/${id}`,config);
 }
-export const searchUsers = async(data,loggedUserId) => {
-    const config = {
+export const getnewsbyId = async(id) => {
+   /* const config = {
         headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
         }
-    }
-    return await axios.post(`${URL}/searchUsersRecords/${loggedUserId}`,data,config);
+    }*/
+    return await axios.post(`${URL}/getnewsbyId/${id}`/*,config*/);
 }
-export const usersProfileByid = async(id) => {  //all users except logged in user
-    const config = {
+export const allnews = async(id) => {  
+    /*const config = {
         headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
         }
-    }
-    return await http.get(`${URL}/user-profile/${id}`,config);
+    }*/
+    return await http.get(`${URL}/allnews/${id}`/*,config*/);
+}
+export const getallfundrequest = async(id) => {  
+    /*const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }*/
+    return await http.get(`${URL}/getallfundrequest/${id}`/*,config*/);
 }
 export const updateUsersProfileById = async(data,id) => {
 
@@ -64,8 +82,8 @@ export const editUserFromAdminById = async(data,id) => {  //all users except log
     }
     return await http.put(`${URL}/userEditFromAdminById/${id}`,data,config);
 }
-export const deleteUser = async(id) => {
-    return await axios.delete(`${URL}/delete/${id}`);
+export const deleteNews = async(id) => {
+    return await axios.delete(`${URL}/deleteNews/${id}`);
 }
 
 export const confirmUser = async(token) => {

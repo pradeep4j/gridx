@@ -5,7 +5,10 @@ import Login from './components/Login';
 import Logout from './components/Logout';
 import Addoffer from './pages/Master Management/Addoffer';
 import Addnews from './pages/Master Management/Addnews';
+//import Newsedit from './pages/Master Management/Newsedit';
 import Addslider from './pages/Master Management/Addslider';
+import Fundrequest from './pages/Fund Request/Fundrequest';
+//import Fundedit from './pages/Master Management/Fundedit';
 import Dashboard from './components/Dashboard';
 import PrivateRoute from './routes/PrivateRoute';
 import PublicRoute from './routes/PublicRoute';
@@ -28,6 +31,9 @@ const App = () => {
           <Route path="/Addnews" element={<Addnews />} />
           <Route path="/Addslider" element={<Addslider />} /> 
           <Route path="/dashboard" element={<Dashboard />} />
+          {/* <Route path="/editnews/:id" element={<Newsedit />} /> */}
+          <Route path="/fundrequest" element={<Fundrequest />} />
+          {/* <Route path="/editfund/:id" element={<Fundedit />} /> */}
         </Routes>
       </AuthContextProvider>
       <ToastContainer

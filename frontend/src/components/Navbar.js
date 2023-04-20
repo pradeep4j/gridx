@@ -146,14 +146,12 @@ const Navbar = () => {
             text: "Accounts",
             icon: <ManageAccountsIcon />,
             // onClick: (e) => onRegister(e)
-        }
-        ,
-/*
+        },
         {
             text: "Fund Request",
             icon: <MoneyIcon />,
-            onClick: (e) => onRegister(e)
-        },*/
+           // onClick: (e) => onRegister(e)
+        },
         {
             text: "Withdrawl Request",
             icon: <AtmIcon />,
@@ -340,6 +338,7 @@ const Navbar = () => {
             alert(values)
             navigate("Addnews");
         }*/
+      //  alert(values)
         switch (values) {
             case 'Master Management2':
                 navigate("Addoffer");
@@ -348,6 +347,9 @@ const Navbar = () => {
              
                 navigate("Addnews");
                 break;
+                case 'Fund Request2':
+                    navigate("Fundrequest");
+                    break;
         }
         /*if(values === 'Master Management2'){
            navigate("Addoffer") 
