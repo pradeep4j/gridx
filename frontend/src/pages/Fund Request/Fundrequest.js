@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Table } from 'antd';
 import dayjs from 'dayjs';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Table, Row, Col } from 'react-bootstrap';
-import Allfundrecord from './Allfundrecord';
-import { Typography, FormGroup, Select, TextField, FormControl, MenuItem, styled, Button, TablePagination, FormLabel } from '@mui/material';
+import {  Row, Col } from 'react-bootstrap';
+//import Allfundrecord from './Allfundrecord';
+import { Typography, FormGroup, Select, TextField, FormControl, MenuItem, styled, Button, TablePagination, FormLabel,InputLabel } from '@mui/material';
 import Loading from "../../components/Loading";
 import { toast } from 'react-toastify';
 import { getallfundrequest } from '../../routes/api';
@@ -15,7 +16,7 @@ const Fundrequest = () => {
     const [dataPage, setDataPage] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [allfundContent, setallfundContent] = useState([]);
+    const [allfundContent, setallfundContent] = useState();
     const handleChangePage = (event, newPage) => setPage(newPage);
 
     const handleChangeRowsPerPage = (event) => {
@@ -27,49 +28,13 @@ const Fundrequest = () => {
     const [todate, setToDate] = useState('');
     const [userId, setUserId] = useState('');
     const [status, setStatus] = useState(0);
-    const getfundrequest = async () => {
-
-        await getallfundrequest().then(response => {
-            // setSpinner(true);
-            if (response.status === 201) {
-                //  setSpinner(false);
-                setallfundContent(response.data);
-            }
-            else {
-                //  setSpinner(false);
-                toast.error(response.data, {
-                    position: "bottom-right",
-                    hideProgressBar: false,
-                    progress: undefined,
-                });
-            }
-        }).catch((error) => {
-            //  setSpinner(false);
-            console.log(error.message);
-            /*  toast.error(error.message, {
-                      position: "bottom-right",
-                      hideProgressBar: false,
-                      progress: undefined,
-              });*/
-        });
-    }
+    
     useEffect(() => {
         //fetchign all news
-        getfundrequest();
+       // getfundrequest();
         setPage(0);
     }, [dataPage]);
-    let listContent;
-    let count = 0;
-    if (spinner) {
-        listContent = <tr><td colSpan='9'><h5>Loading...</h5></td></tr>
-    }
-    else {
-        count = allfundContent?.length;
-        {
-            allfundContent && allfundContent?.length > 0 ?
-                (listContent = allfundContent.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((funds) => (<Allfundrecord Allfundrecord={funds} />))) : (listContent = <tr><td colSpan='4'><h5>No record found</h5></td></tr>)
-        }
-    }
+    
     const onSubmit = async (e) => {
         e.preventDefault();
         const postBody = {
@@ -78,18 +43,127 @@ const Fundrequest = () => {
             userId: userId,
             status: status
         }
-        alert(JSON.stringify(postBody)); return;
+        setSpinner(true)
+        await getallfundrequest(postBody).then(response => {
+            
+            if (response.status === 200 || response.status === true) {
+                  setSpinner(false);
+               // alert(JSON.stringify(response.data));
+                setallfundContent(response.data.data);
+            }
+            else {
+                 // setSpinner(false);
+                toast.error(response.data, {
+                    position: "bottom-right",
+                    hideProgressBar: false,
+                    progress: undefined,
+                });
+            }
+        }).catch((error) => {
+              setSpinner(false);
+            console.log(error.message);
+            /*  toast.error(error.message, {
+                      position: "bottom-right",
+                      hideProgressBar: false,
+                      progress: undefined,
+              });*/
+        });
+        
     }
+    let listContent;
+    let count = 0;
+    //alert(spinner)
+    if (spinner) {
+        listContent = <tr><td colSpan='9'><h5>Loading...</h5></td></tr>
+    }
+    else {
+        count = allfundContent?.length;
+      //  alert(count)
+       // listContent = allfundContent.map((funds) => (<Allfundrecord Allfundrecord={funds} />)) 
+          /*  allfundContent && allfundContent?.length > 0 ?
+                (listContent = allfundContent.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((funds) => (<Allfundrecord Allfundrecord={funds} />))) : (listContent = <tr><td colSpan='4'><h5>No record found</h5></td></tr>)*/
+        
+    }
+    // DESTRUCTURING DATA FOR DATA TABLE
+    const data = [...allfundContent];
+    console.log(allfundContent);
+    // DEFINING DATA TABLE COLUMNS
+    const columns = [
+        {
+            title: "#",
+            key: 'sr',
+            dataIndex: 'sr',
+            render: (_, elem, index) => index + 1
+        },
+        {
+            title: "Status", //Status
+            key: 'status',
+            dataIndex: 'status',
+            render: (_, elem) => {
+                return (elem.status == 0) ? 'Pending' : (elem.status == 1) ? 'Approved' : 'Rejected' 
+            }
+        },
+        {
+            title: "User Id",
+            key: 'userId',
+            dataIndex: 'userId',
+        },
+        {
+            title: "Deposit Wallet",
+            key: 'deposit_wallet',
+            dataIndex: 'deposit_wallet',
+            render: (_, elem) => {
+                return "GDX" 
+            }
+        },
+        {
+            title: "Date of Request",
+            key: 'created_at',
+            dataIndex: 'created_at',
+            render: (_, elem) => <span className="sub sub-s2">
+                {(new Date(elem.created_at))?.toDateString()} {(new Date(elem.created_at))?.toLocaleTimeString()}
+            </span>
+        },
+        {
+            title: "Approve Date",
+            key: 'updated_at',
+            dataIndex: 'updated_at',
+            render: (_, elem) => <span className="sub sub-s2">
+                {(new Date(elem.updated_at))?.toDateString()} {(new Date(elem.updated_at))?.toLocaleTimeString()}
+            </span>
+        },
+        {
+            title: "Amount",
+            key: 'gdxamount',
+            dataIndex: 'gdxamount',
+        },
+        {
+            title: "Transaction Id",
+            key: 'hash',
+            dataIndex: 'hash',
+        },
+        {
+            title: "Remark",
+            key: 'remark',
+            dataIndex: 'remark',
+        },   
+        {
+            title: "Action",
+            key: 'action',
+            dataIndex: 'action',
+
+        }             
+     ];
     return (
         <Container>
 
             <Typography variant="h5">Fund Request<Ptags></Ptags></Typography>
-            {spinner && <Loading />}
+           
             <FormControl>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer
                         components={[
-                            'DatePicker'
+                            
                         ]}
                     >
                         <DemoItem label="From Date">
@@ -137,23 +211,25 @@ const Fundrequest = () => {
                     <div className='row'>
                         <div className='col-md-11'>
                             <div className='card'>
-
-                                <Table scope="col"
+                             <Table columns={columns} dataSource={data} /> 
+                                {/* <Table scope="col"
                                     striped
                                     bordered
                                     responsive
                                     className='table-sm text-center'>
                                     <thead className='fonts'>
                                         <tr><td style={{ widtd: '10px' }}>#</td><td style={{ width: '100px', textAlign: 'center' }}>Status</td><td style={{ width: '100px', textAlign: 'center' }}>User Id</td><td style={{ width: '100px', textAlign: 'center' }}>User Name</td>
-                                            <td style={{ width: '150px', textAlign: 'center' }}>Deposit Wallet</td><td style={{ width: '150px', textAlign: 'center' }}>Date of Request</td><td style={{ width: '150px', textAlign: 'center' }}>Approve Date</td><td style={{ width: '150px', textAlign: 'center' }}>Amount</td>
+                                            <td style={{ width: '150px', textAlign: 'center' }}>Deposit Wallet</td><td style={{ width: '150px', textAlign: 'center' }}>Amount</td>
                                             <td style={{ width: '150px', textAlign: 'center' }}>Transaction Id</td>
                                             <td style={{ width: '100px', textAlign: 'center' }}>Remark</td>
+                                            <td style={{ width: '100px', textAlign: 'center' }}>Action</td>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {listContent}
                                     </tbody>
                                 </Table>
+                                {count >0 ?
                                 <TablePagination
                                     rowsPerPageOptions={[0]}
                                     component="div"
@@ -163,7 +239,7 @@ const Fundrequest = () => {
                                     onPageChange={handleChangePage}
                                     onRowsPerPageChange={handleChangeRowsPerPage}
                                 />
-
+                                    : ''} */}
                             </div>
                         </div>
                     </div>

@@ -22,13 +22,27 @@ config.hashPassword = (password) => {
     return hashedPassword
 }
 
+config.currentTimeStamp = (timestamp)=> {
+    const currentDate = new Date(timestamp);
+    const currentDayOfMonth = currentDate.getDate();
+    const currentMonth = currentDate.getMonth(); // Be careful! January is 0, not 1
+    const currentYear = currentDate.getFullYear();
+    // const currentHour = currentDate.getHours();
+    // const currentMinute = currentDate.getMinutes();
+    // const currentSeconds = currentDate.getSeconds();
+    // const dateString = currentDayOfMonth + "-" + (currentMonth + 1) + "-" + currentYear;
+    //const dateString = currentYear + "-" + (currentMonth + 1) + "-" + currentDayOfMonth +" "+currentHour+":"+currentMinute+":"+currentSeconds;
+    const dateString = currentYear + "-" + (currentMonth + 1) + "-" + currentDayOfMonth;
+    return dateString;
+}
+
 config.generateAccessToken = (email) => {
     //return jwt.sign(email, process.env.TOKEN_SECRET, { expiresIn: process.env.JWT_EXPIRE_TIME });
     return jwt.sign(email, process.env.TOKEN_SECRET);
 }
 
 config.response = (rescode, message, data, res, extraData) => {
-    data = (JSON.stringify(data) === '{}') ? [] : data;
+    data = (JSON.stringify(data) === '{}') ? {} : data;
     const status = rescode == 200 ? true : false;
     res.status(200).json({ data: data, message: message, status: status, ...extraData });
 }
@@ -176,11 +190,11 @@ config.binaryCount = async (id) => {
     });
 }
 
-config.checkValidCode = async (user, code, res, add_min = 1000) => {
+config.checkValidCode = async (user, code, res, add_min = 60*1000*10) => {
     const userdata = await Users.findOne({ username: user });
     const createotptime = new Date(userdata.otp_time);
     createotptime.setSeconds(createotptime.getSeconds() + add_min);
-    if (createotptime < new Date()) {
+    if (createotptime <= new Date()) {
         if (userdata.otp !== code) {
             // console.log('OTP Is Not Match')
             config.response(200, 'Invalid OTP!', {}, res);
@@ -203,48 +217,106 @@ config.checkValidCode = async (user, code, res, add_min = 1000) => {
 config.directSponsorCommission = async (user_id, amount) => {
 
     const user = await Users.findOne({ username: user_id });
-    const directbonus = user.directbonus;
+    let directbonus = user.directbonus;
     const sponsorid = user.sponsor;
-
-    //check3x=config.check3XFun(sponsorid);
-    // if(check3x[1]==false)
-    // {
-    //     const filter = { _id: ObjectId(sponsorid) };
-    //     const update = { activ_member: 0};
-    //     const doc = await Users.findOneAndUpdate(filter, update, {
-    //         returnOriginal: false
-    //     }).exec((err, res) => {
-
-    //     });
-    // }
-
-
     if (user.renewal_status == 1) {
-        present = amount * 7 / 100;
+        present = amount * 5 / 100;
     }
     else {
-        present = amount * 7 / 100;
+        present = amount * 5 / 100;
     }
 
     let sponsor = await Users.findOne({ _id: ObjectId(sponsorid) });
-
     if (sponsor.activ_member) {
-        const gridxwalletamt = 10000000;
-        const babydogegwalletamt = 1;
+        const babydogegwalletamt = 10000000;
+        const gridxwalletamt= 1;
         const shibawalletamt = 100000;
         const totaldirectbonus = sponsor.directWallet + present;
-        const directbonus = totaldirectbonus;
-        const wallet = sponsor.wallet + present;
+        let   directbonus = totaldirectbonus;
+        let   wallet = sponsor.wallet + present;
+        let   internalWallet = sponsor.internalWallet + present;
         const gridxwallet = sponsor.gridxWallet + gridxwalletamt;
         const babydogeWallet = sponsor.babyDogeWallet + babydogegwalletamt;
         const shibawallet = sponsor.shibaWallet + shibawalletamt;
 
+        //3X condition
+
+        let check3XFun=await config.check3XFun(sponsor._id.toString());
+         let check3XFunfinal=await config.check3XFunFinal(sponsor._id.toString(),check3XFun);
+         if(check3XFunfinal[1]==false)
+         {
+            const filter = { _id: sponsor._id };
+            const update = { activ_member: 0};
+
+            const doc = await Users.findOneAndUpdate(filter, update, {
+                returnOriginal: false
+            }).exec((err, res) => {
+
+            });
+            
+            wallet=sponsor.wallet +0;
+            directbonus=sponsor.directWallet + 0;
+            internalWallet=sponsor.internalWallet + 0;
+            sponsor.activ_member=0;
+         }
+         else
+         {
+               if(check3XFun[0].count*3<=wallet)
+               {
+                    walletdata=check3XFun[0].count*3;
+
+                    const incomHistory = new IncomHistory(
+                    {
+                        userId: sponsor?._id?.toString(),
+                        amount: wallet-walletdata,
+                        type: 'direct_sponsor_comm',
+                        status: 0,
+                        description: 'Direct Reward 3x complete: $ ' + (wallet-walletdata),
+                    });
+                    incomHistory.save().then(() => {
+                        
+                    }).catch((error) => {
+                        config.response(500, 'Internal Server Error!', {}, res);
+                    });
+                    directamount=walletdata-sponsor.wallet;
+                    wallet=walletdata;
+                    present=directamount;
+                    directbonus=sponsor.directWallet + directamount;
+                    internalWallet=sponsor.internalWallet + directamount;
+               }
+               else
+               {
+                    walletdata=check3XFun[0].count*3;
+                    directamount=walletdata-sponsor.wallet;
+                    directbonus=sponsor.directWallet + directamount;
+                    internalWallet=sponsor.internalWallet + directamount;
+                    wallet=sponsor.wallet+directamount;
+                    lefsdata=present-directamount;
+                    present=directamount;
+                    const incomHistory = new IncomHistory(
+                    {
+                        userId: sponsor?._id?.toString(),
+                        amount: lefsdata,
+                        type: 'binary_comm',
+                        status: 0,
+                        description: 'Matching Reward 3x complete: $ ' + lefsdata,
+                    });
+                    incomHistory.save().then(() => {
+                        
+                    }).catch((error) => {
+                        config.response(500, 'Internal Server Error!', {}, res);
+                    });
+               }
+         }
+
+         //endcondition
+
         const filter = { _id: sponsor._id };
-        const update = { directWallet: directbonus, wallet: wallet, "gridxWallet": gridxwallet, "babyDogeWallet": babydogeWallet, "shibaWallet": shibawallet };
+        const update = { directWallet: directbonus, wallet: wallet,internalWallet: internalWallet, "gridxWallet": gridxwallet, "babyDogeWallet": babydogeWallet, "shibaWallet": shibawallet };
         const doc = await Users.findOneAndUpdate(filter, update, {
             returnOriginal: false
         }).exec((err, res) => {
-
+           
         });
     }
     const incomHistory = new IncomHistory(
@@ -253,7 +325,7 @@ config.directSponsorCommission = async (user_id, amount) => {
             amount: present,
             type: 'direct_sponsor_comm',
             status: sponsor.activ_member,
-            description: 'Conecting Bonus : $ ' + present,
+            description: 'Direct Reward : $ ' + present,
         });
     incomHistory.save().then(() => {
     }).catch((error) => {
@@ -367,21 +439,133 @@ config.getUserBinary = async (value) => {
         min_pv = left_pv;
     };
     let uid = value.uid;
-    const left_pv_up = value.left_pv - min_pv;
-    const right_pv_up = value.right_pv - min_pv;
-    const b_comm = min_pv * 7 / 100;
-    const user = await Users.findOne({ _id: ObjectId(uid) });
+    var left_pv_up = value.left_pv - min_pv;
+    var right_pv_up = value.right_pv - min_pv;
+    var b_comm = min_pv * 10 / 100;
+
+    var user = await Users.findOne({ _id: ObjectId(uid) });
     if (user.activ_member) {
-        const totalbinary = user.binaryWallet + b_comm;
-        const wallet = user.wallet + b_comm;
-        const filter = { _id: user._id };
-        const update = { binaryWallet: totalbinary, wallet: wallet };
+        let totalbinary = 0;
+        let wallet = 0;
+        let internalWallet = 0;
+        var investamount = await BuyToken.findOne({
+            userId: uid
+        }).sort({ created_at: -1 });
+        if (investamount) {
 
-        const doc = await Users.findOneAndUpdate(filter, update, {
-            returnOriginal: false
-        }).exec((err, res) => {
 
-        });
+            const totaldata = await IncomHistory.aggregate([
+                {
+                    $match: {
+                        userId: uid, type: "binary_comm", status: 1, created_at: {
+                            $gte: new Date(new Date().setHours(00, 00, 00)),
+                            $lt: new Date(new Date().setHours(23, 59, 59))
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$id",
+                        count: {
+                            $sum: "$amount"
+                        }
+                    }
+                },
+
+            ]);
+            let binarydata = 0;
+
+            if (totaldata == undefined || totaldata == null || totaldata == '', totaldata.length == 0) {
+                binarydata = 0;
+            }
+            else {
+                binarydata = totaldata[0].count;
+            }
+            if (investamount.usdamount >= (binarydata + b_comm)) {
+                internalWallet = user.internalWallet + b_comm;
+                totalbinary = user.binaryWallet + b_comm;
+                wallet = user.wallet + b_comm;
+                b_comm = b_comm;
+            }
+            else {
+                dataamount = (binarydata + b_comm) - investamount.usdamount;
+                b_commdata = investamount.usdamount - binarydata;
+                b_commdata = (b_commdata <= b_comm) ? b_commdata : (b_commdata - b_comm);
+                internalWallet = user.internalWallet + b_commdata;
+                totalbinary = user.binaryWallet + b_commdata;
+                wallet = user.wallet + b_commdata;
+                if (b_commdata) {
+                    b_comm = b_commdata;
+                    const incomHistory = new IncomHistory(
+                        {
+                            userId: user?._id?.toString(),
+                            amount: dataamount,
+                            type: 'binary_comm',
+                            status: 0,
+                            description: 'Matching Reward: $ ' + dataamount,
+                        });
+                    incomHistory.save().then(() => {
+
+                    }).catch((error) => {
+                        config.response(500, 'Internal Server Error!', {}, res);
+                    });
+                }
+                else {
+                    user.activ_member = 0;
+                }
+
+
+            }
+            let check3XFun = await config.check3XFun(uid);
+            let check3XFunfinal = await config.check3XFunFinal(uid, check3XFun)
+            if (check3XFunfinal[1] == false) {
+                const filter = { _id: user._id };
+                const update = { activ_member: 0 };
+
+                const doc = await Users.findOneAndUpdate(filter, update, {
+                    returnOriginal: false
+                }).exec((err, res) => {
+
+                });
+
+                wallet = user.wallet + 0;
+                totalbinary = user.binaryWallet + 0;
+                internalWallet = user.internalWallet + 0;
+                user.activ_member = 0;
+            }
+            else {
+                if (check3XFun[0].count * 3 < wallet) {
+                    walletdata = check3XFun[0].count * 3;
+
+                    const incomHistory = new IncomHistory(
+                        {
+                            userId: user?._id?.toString(),
+                            amount: wallet - walletdata,
+                            type: 'binary_comm',
+                            status: 0,
+                            description: 'Matching Reward 3x complete: $ ' + (wallet - walletdata),
+                        });
+                    incomHistory.save().then(() => {
+
+                    }).catch((error) => {
+                        config.response(500, 'Internal Server Error!', {}, res);
+                    });
+                    binaryamount = walletdata - user.wallet;
+                    wallet = walletdata;
+                    b_comm = binaryamount;
+                    totalbinary = user.binaryWallet + binaryamount;
+                    internalWallet = user.internalWallet + binaryamount;
+                }
+            }
+            const filter = { _id: user._id };
+            const update = { binaryWallet: totalbinary, wallet: wallet, internalWallet: internalWallet };
+
+            const doc = await Users.findOneAndUpdate(filter, update, {
+                returnOriginal: false
+            }).exec((err, res) => {
+
+            });
+        }
     }
     const incomHistory = new IncomHistory(
         {
@@ -389,7 +573,7 @@ config.getUserBinary = async (value) => {
             amount: b_comm,
             type: 'binary_comm',
             status: user.activ_member,
-            description: 'Binary Comm : $ ' + b_comm,
+            description: 'Matching Reward : $ ' + b_comm,
         });
     incomHistory.save().then(() => {
         ChildCounter.updateOne({ uid: uid }, { left_pv: left_pv_up, right_pv: right_pv_up }, (err, result) => {
@@ -400,6 +584,7 @@ config.getUserBinary = async (value) => {
     }).catch((error) => {
         config.response(500, 'Internal Server Error!', {}, res);
     });
+
 
 }
 
@@ -412,7 +597,6 @@ config.binaryCommissionFun = async (req, res) => {
             config.response(500, 'Internal Server Error!', {}, res);
         }
         else {
-            // console.log(childcounter);
             if (childcounter.length > 0) {
                 childcounter.map(config.getUserBinary);
             }
@@ -446,10 +630,24 @@ config.recLevelChild = async (userId, req) => {
     }
 }
 
-config.totalTeamMemberID = async (req, user_id) => {
-    let directMember = await Users.find({ parentId: user_id });
-    let c = directMember.length;
-    c = await config.member1(req, directMember, c);
+config.totalTeamMemberID = async (user_id) => {
+    let directMemberFirst = await Users.find({ parentId: user_id });
+    var directMember = [directMemberFirst];
+    var idsInArr1 = directMemberFirst.map((d)=>{
+        return d._id; 
+    });
+    const idsInArr = await config.getIdsInArrayFormat(directMemberFirst);
+    if(directMemberFirst.length > 0){
+        await config.getTotalTeamMember(idsInArr ,directMember);
+        await directMember.map((d)=>{
+            d.map((inner)=>{
+                idsInArr1.push(inner._id);
+            });
+        });
+        return idsInArr1;
+    }else{
+        return idsInArr1;
+    }
 }
 
 config.member1 = async (req, directMember, x) => {
@@ -466,7 +664,7 @@ function idsInArray1(req, directMember) {
 
     let ids = [];
     directMember.forEach((member) => {
-        ids.push(member.id);
+        ids.push(member._id);
         memberIds.push(member);
     });
     req.childId = memberIds;
@@ -474,17 +672,13 @@ function idsInArray1(req, directMember) {
 }
 
 config.totalTeamActiveMemberID = async (req, user_id) => {
-    await config.totalTeamMemberID(req, user_id);
-    const childIdData = req.childId;
-    const childdatas = childIdData.map(data => data._id);
+    const childdatas = await config.totalTeamMemberID(user_id);
     const activeusers = await Users.find({ _id: { $in: childdatas }, "activ_member": 1 });
     return activeusers;
 }
 
 config.totalTeamActiveMemberPosition = async (req, user_id, position) => {
-    await config.totalTeamMemberID(req, user_id);
-    const childIdData = req.childId;
-    const childdatas = childIdData.map(data => data._id);
+    const childdatas = await config.totalTeamMemberID(user_id);
     const activeusers = await Users.find({ _id: { $in: childdatas }, "activ_member": 1, position: position });
     return activeusers;
 }
@@ -530,7 +724,7 @@ config.sponsorBusinesses = async (user_id, req) => {
             $group: {
                 _id: "$id",
                 count: {
-                    $sum: "$gdxamount"
+                    $sum: "$usdamount"
                 }
             }
         },
@@ -546,7 +740,7 @@ config.check3XFun = (id) => {
             $group: {
                 _id: "$id",
                 count: {
-                    $sum: "$gdxamount"
+                    $sum: "$usdamount"
                 }
             }
         },
@@ -655,7 +849,7 @@ config.selfBusiness = async (userid) => {
                     $group: {
                         _id: "$id",
                         count: {
-                            $sum: "$gdxamount"
+                            $sum: "$usdamount"
                         }
                     }
                 }]);
@@ -701,6 +895,17 @@ config.getTotalActiveTeamMember = async (idsInArr ,totalActiveTeam) => {
     }
 }
 
+config.getTotalTeamMember = async (idsInArr ,levelUsers) => {
+    const activeusers = await Users.find({ parentId :{$in:idsInArr} }).select("_id name username status created_at");
+    if(activeusers.length > 0){
+        const idsInArr = await config.getIdsInArrayFormat(activeusers);
+        levelUsers.push(activeusers);
+        await config.getTotalTeamMember(idsInArr ,levelUsers);
+    }else{
+        return levelUsers;
+    }
+}
+
 config.getIdsInArrayFormat = async (members) => {
     var activeData = [];
     await members.map((m)=>{
@@ -713,6 +918,179 @@ config.getLiveRateAmount = async () =>{
     const url = "https://api.polobix.com:3007/api/pancake/get_price_pair_usdt?takerAddress=0x7ffb5a90cdbd2ae2a65d5bfe259ac936cc302be2&makerAddress=0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c&amount=1&symbol=BNB";
     const response = await axios.get(url);
     return response;
+}
+
+config.directSponserBusiness = async (query ) =>{
+    const users = await Users.find({ ...query }, '_id');
+
+    const newArr = users.map((data) => data._id.toString());
+    const buyToken = await BuyToken.aggregate([
+        { $match: { userId: { $in: newArr } } },
+        {
+            $group: {
+                _id: "$id",
+                count: {
+                    $sum: "$usdamount"
+                }
+            }
+        }
+    ])
+    return (buyToken.length > 0) ? buyToken[0]?.count : 0;
+}
+
+config.directSponsorCommission = async (user_id, amount) => {
+
+    const user = await Users.findOne({ username: user_id });
+    let directbonus = user.directbonus;
+    const sponsorid = user.sponsor;
+    if (user.renewal_status == 1) {
+        present = amount * 5 / 100;
+    }
+    else {
+        present = amount * 5 / 100;
+    }
+
+    let sponsor = await Users.findOne({ _id: ObjectId(sponsorid) });
+    if (sponsor.activ_member) {
+        const babydogegwalletamt = 10000000;
+        const gridxwalletamt = 1;
+        const shibawalletamt = 100000;
+        const totaldirectbonus = sponsor.directWallet + present;
+        let directbonus = totaldirectbonus;
+        let wallet = sponsor.wallet + present;
+        let internalWallet = sponsor.internalWallet + present;
+        const gridxwallet = sponsor.gridxWallet + gridxwalletamt;
+        const babydogeWallet = sponsor.babyDogeWallet + babydogegwalletamt;
+        const shibawallet = sponsor.shibaWallet + shibawalletamt;
+
+        //3X condition
+
+        let check3XFun = await config.check3XFun(sponsor._id.toString());
+        let check3XFunfinal = await config.check3XFunFinal(sponsor._id.toString(), check3XFun);
+        if (check3XFunfinal[1] == false) {
+            const filter = { _id: sponsor._id };
+            const update = { activ_member: 0 };
+
+            const doc = await Users.findOneAndUpdate(filter, update, {
+                returnOriginal: false
+            }).exec((err, res) => {
+
+            });
+
+            wallet = sponsor.wallet + 0;
+            directbonus = sponsor.directWallet + 0;
+            internalWallet = sponsor.internalWallet + 0;
+            sponsor.activ_member = 0;
+        }
+        else {
+            if (check3XFun[0].count * 3 < wallet) {
+                walletdata = check3XFun[0].count * 3;
+
+                const incomHistory = new IncomHistory(
+                    {
+                        userId: sponsor?._id?.toString(),
+                        amount: wallet - walletdata,
+                        type: 'direct_sponsor_comm',
+                        status: 0,
+                        description: 'Direct Reward 3x complete: $ ' + (wallet - walletdata),
+                    });
+                incomHistory.save().then(() => {
+
+                }).catch((error) => {
+                    config.response(500, 'Internal Server Error!', {}, res);
+                });
+                directamount = walletdata - sponsor.wallet;
+                wallet = walletdata;
+                present = directamount;
+                directbonus = sponsor.directWallet + directamount;
+                internalWallet = sponsor.internalWallet + directamount;
+            }
+
+        }
+
+        //endcondition
+
+        const filter = { _id: sponsor._id };
+        const update = { directWallet: directbonus, wallet: wallet, internalWallet: internalWallet, "gridxWallet": gridxwallet, "babyDogeWallet": babydogeWallet, "shibaWallet": shibawallet };
+        const doc = await Users.findOneAndUpdate(filter, update, {
+            returnOriginal: false
+        }).exec((err, res) => {
+
+        });
+    }
+    const incomHistory = new IncomHistory(
+        {
+            userId: sponsor?._id?.toString(),
+            amount: present,
+            type: 'direct_sponsor_comm',
+            status: sponsor.activ_member,
+            description: 'Direct Reward : $ ' + present,
+        });
+    incomHistory.save().then(() => {
+    }).catch((error) => {
+        config.response(500, 'Internal Server Error!', {}, res);
+    });
+}
+
+config.generateOTP = ()=> {
+    var digits = '0123456789';
+    let OTP = '';
+    for (let i = 0; i < 6; i++ ) {
+        OTP += digits[Math.floor(Math.random() * 10)];
+    }
+    return OTP;
+}
+
+config.sendOtp = async (mobile,message) => {
+    const axios = require('axios');
+    let config = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: 'http://sms.softfix.in/submitsms.jsp?user=EsafeS&key=d5a7374c54XX&mobile='+mobile+'&message='+message+'&senderid=SOFTFI&accusage=1&entityid=1201159965850654415&tempid=1207162088349246137',
+    headers: { 
+        'Cookie': 'JSESSIONID=8F9807DF5B19D868A8CCA43634D405E3'
+    }
+    };
+
+    axios.request(config)
+    .then((response) => {
+        console.log(JSON.stringify(response.data));
+    })
+    .catch((error) => {
+        console.log(error);
+    });
+}
+
+config.verifyOtp = async (user,type, code, res,value, add_min = 10) => {
+    const userdata = await Users.findOne({ _id: user });
+    const createotptime = new Date(userdata.otp_time);
+    createotptime.setMinutes(createotptime.getMinutes() + add_min);
+    console.log(createotptime,new Date());
+    if (createotptime > new Date()) {
+        if (userdata.otp !== code) {
+            config.response(200, 'Invalid OTP!', {}, res);
+        }
+        else {
+            var resMessage = '';
+            const filter = { _id: userdata._id };
+            var update = {otp_time: null, otp: null}
+            if(type == 'mobile'){
+                resMessage = 'Mobile Has been Verified Successfully!';
+                update = { ...update,sv: 1,mobile:value  };
+            }else{
+                resMessage = 'Emnail Has been Verified Successfully!';
+                update = { ...update,ev: 1 ,email:value };
+            }
+            const doc = await Users.findOneAndUpdate(filter, update, {
+                returnOriginal: false
+            }).exec((err, res) => {
+            });
+            config.response(200, resMessage, {}, res);
+        }
+    }
+    else {
+        config.response(200, 'OTP Expired Please Resend', {}, res);
+    }
 }
 
 

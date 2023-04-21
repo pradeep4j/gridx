@@ -6,6 +6,7 @@ var p2ptranSchema = new mongoose.Schema({
     gdxamount             : { type: Number, index: true, default: 0 },
     usdamount             : { type: Number, index: true, default: 0 },
     status                : { type: Number, index: true, default: 0,ref: "0:active,1:retopup" },
+    walletType            : { type: String, index: true },
     created_at            : { type: Date, default: Date.now, index: true },
     updated_at            : { type: Date, default: Date.now },   
 });

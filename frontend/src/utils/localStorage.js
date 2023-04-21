@@ -33,10 +33,11 @@ export const getAPIUrlOrders = () => {
         return URL;
 }
 export const getToken = () => {
-        let userInfos = localStorage.getItem('userInfo');
+        let userInfos = localStorage.getItem('token');
         const userToken = JSON.parse(userInfos);
+       // alert(userToken);
         if(userToken){
-                return userToken.access_token;
+                return userToken;
         }
 }
 export const setUser = (user_logged) =>

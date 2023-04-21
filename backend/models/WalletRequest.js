@@ -4,6 +4,7 @@ var walletrequestSchema = new mongoose.Schema({
     hash                  : { type: String, index: true,},
     gdxamount             : { type: Number, index: true, default: 0 },
     status                : { type: Number, index: true, default: 0,ref: "0:pending,1:success,2:rejected" },
+    remarks               : { type: String, index: true, default: null },
     created_at            : { type: Date, default: Date.now, index: true },
     updated_at            : { type: Date, default: Date.now },  
 });

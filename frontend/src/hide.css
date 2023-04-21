@@ -4,4 +4,17 @@
 .fonts {
     color: white;
     background-color: rgb(32, 119, 190);
-  }
+}
+.ssoBg {
+    bottom: 0;
+    height: 100%;
+    opacity: .25;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    width: inherit;
+}
+.page-ath-heading {
+    padding-bottom: 23px;
+    font-size: 2.8em;
+}

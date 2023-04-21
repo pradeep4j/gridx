@@ -72,6 +72,11 @@ router.post('/walletrequest',
 
     });
 
+
+router.post('/fundRequestList',async (req, res, next) => {
+    base.fundRequestList(req, res, next)
+});
+
 router.post('/treesecondlevel',
     (req, res) => {
         base.treesecondlevel(req, res)
@@ -141,14 +146,9 @@ const getSponsorId = (data) => {
     return data._id.toString();
 }
 router.post('/getteammember',
-    (req, res) => {
-        const data = config.totalTeamMemberID(req, req._id.toString());
-        data.then(datas => {
-            const childIdData = req.childId;
-            const childdatas = childIdData.map(showdteammemberdata);
-            usercon.allTeamMember(req, res, childdatas)
-        });
-
+    async (req, res) => {
+        const data = await config.totalTeamMemberID(req._id.toString());
+        usercon.allTeamMember(req, res, data);
     });
 const showdteammemberdata = (data) => {
     return data._id;
@@ -163,6 +163,51 @@ router.post('/get3Xamount', async(req, res) => {
 });
 router.post('/transactionhistoryreport',(req, res) => {
     usercon.transactionHistoryReport(req, res)
+});
+
+
+router.post('/getMemberByLevel',(req, res,next) => {
+    usercon.getMemberByLevel(req, res, next)
+});
+router.post('/getMyDownline',(req, res,next) => {
+    usercon.getMyDownline(req, res, next)
+});
+
+router.post('/renualHistory',(req, res,next) => {
+    usercon.renualHistory(req, res, next)
+});
+
+router.post('/updateProfile',(req, res,next) => {
+    usercon.updateProfile(req, res, next);
+});
+
+router.post('/updateEmailMobile',
+body('type').not().isEmpty().withMessage("The type field is required!"),
+body('value').not().isEmpty().withMessage("The value field is required!"),
+(req, res,next) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        config.response(400, 'Validation Error!', { errors: errors.array() }, res);
+    }else{
+        usercon.updateEmailMobile(req, res, next);
+    }
+});
+
+router.post('/otpVerifyAndUpdate',
+body('type').not().isEmpty().withMessage("The type field is required!"),
+body('value').not().isEmpty().withMessage("The value field is required!"),
+body('otp').not().isEmpty().withMessage("The otp field is required!"),
+(req, res,next) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        config.response(400, 'Validation Error!', { errors: errors.array() }, res);
+    }else{
+        usercon.otpVerifyAndUpdate(req, res, next);
+    }
+});
+
+router.post('/p2ptranHistory',(req, res,next) => {
+    usercon.p2ptranHistory(req, res, next);
 });
 
 module.exports = router; 

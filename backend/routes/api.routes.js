@@ -28,7 +28,8 @@ router.post('/register',
             }
         })
     }),
-    check('username').not().isEmpty().withMessage("The username field is required!")
+    //check('username', 'username must be in numeric form').isInt()
+   check('username').not().isEmpty().withMessage("The User Id field is required!")
     .custom((value,{ req }) => {
         return Users.findOne({username: value})
         .then((user) => {  

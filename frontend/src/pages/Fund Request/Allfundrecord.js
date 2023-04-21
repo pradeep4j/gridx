@@ -15,7 +15,8 @@ const Allfundrecord = ({AllfundRecord}) => {
       }      
     return (
       <tr key={AllfundRecord._id}>
-          <td>{AllfundRecord.news}</td>
+          <td>{AllfundRecord.status}</td>
+          <td>{AllfundRecord.userId}</td>
           <td>{AllfundRecord.occupation}</td>
           <td>{AllfundRecord.occupation}</td>
           <td>{AllfundRecord.occupation}</td>
@@ -24,12 +25,7 @@ const Allfundrecord = ({AllfundRecord}) => {
           <td>{AllfundRecord.occupation}</td>
           <td>{AllfundRecord.occupation}</td>
           <td>{AllfundRecord.occupation}</td>
-          <td>{AllfundRecord.occupation}</td>
-          <td>{AllfundRecord.occupation}</td>
-          {/* <td><a style={{color:'white',textDecoration: 'none'}} className='btn btn-success btn-sm' href={`/editfund/${AllfundRecord._id}`} >Edit</a></td>
-          <td>
-              <button className='btn btn-danger btn-sm' onClick={(e) => deletefund(e,AllfundRecord._id)}>Delete</button>
-          </td>     */}
+          <td><a style={{color:'white',textDecoration: 'none'}} className='btn btn-success btn-sm' href={`/editfund/${AllfundRecord._id}`} >Edit</a></td>
       </tr>
     )
 }

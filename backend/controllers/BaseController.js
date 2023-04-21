@@ -10,7 +10,9 @@ const IncomHistory = require("../models/IncomHistory");
 const baseController = {};
 
 baseController.register = function (req, res) {
-    Users.findOne({ email: req.body.email }, async (err, user) => {
+    username = req.body.username.slice(0,3);
+    req.body.username = (username != 'GDX') ? 'GDX'+req.body.username : req.body.username; 
+    Users.findOne({ username: req.body.username }, async (err, user) => {
         if (err) {
             config.response(500, 'Internal Server Error!', {}, res);
         }
@@ -31,7 +33,7 @@ baseController.register = function (req, res) {
                 parentId: await config.getParentId(spons, req.body.position, res),
                 password: await config.hashPassword(req.body.password, res),
                 status: 1,
-            });
+            });  
 
             // generating registration token
             const token = await registerUser.authToken();
@@ -48,6 +50,7 @@ baseController.register = function (req, res) {
 
 
             }).catch((error) => {
+                console.log(error);
                 config.response(500, 'Internal Server Error!', {}, res);
             });
         } else {
@@ -58,11 +61,13 @@ baseController.register = function (req, res) {
 }
 
 baseController.login = function (req, res) {
+    username = req.body.username.slice(0,3);
+    req.body.username = (username != 'GDX') ? 'GDX'+req.body.username : req.body.username; 
     Users.findOne({ username: req.body.username, status: true }, (err, user) => {
         if (err) {
             config.response(500, 'Internal Server Error!', {}, res);
         } else if (user == undefined) {
-            config.response(201, 'User Not Found!', {}, res);
+            config.response(201, 'User Not Found!ss', {}, res);
         } else {
             bcrypt.compare(req.body.password, user.password, async (err, isMatch) => {
                 if (err) {
@@ -85,31 +90,46 @@ baseController.login = function (req, res) {
 }
 
 //wallet Request 
-
 baseController.walletrequest = async (req, res, username) => {
     const userexist = await Users.findOne({ username: username });
     if (userexist) {
-        const walletrequest = new WalletRequest({
-            userId: userexist._id.toString(),
-            hash: req.body.hash,
-            gdxamount: req.body.gdxamount,
-        });
-        walletrequest.save().then(() => {
-            var data = { ...walletrequest._doc }
-            const html = '<h6> Dear user ' + username + ' Your Wallet Request Successfully Registered Wait For Approved</h6>';
-            // config.sendMail(registerUser._doc.email,"Login Alert!",html);
-            config.response(200, 'Request Successfully Registered!', data, res);
-
-        }).catch((error) => {
-            console.log(error);
-            config.response(500, 'Internal Server Error!', {}, res);
-        });
+        const checkWalletRequest = await WalletRequest.findOne({hash: req.body.hash});
+        if(checkWalletRequest == null){
+            const walletrequest = new WalletRequest({
+                userId: userexist._id.toString(),
+                hash: req.body.hash,
+                gdxamount: req.body.gdxamount,
+            });
+            walletrequest.save().then(() => {
+                var data = { ...walletrequest._doc }
+                const html = '<h6> Dear user ' + username + ' Your Wallet Request Successfully Registered Wait For Approved</h6>';
+                config.response(200, 'Request Successfully Registered!', data, res);
+            }).catch((error) => {
+                console.log(error);
+                config.response(500, 'Internal Server Error!', {}, res);
+            });
+        }else{
+            config.response(201, 'Hash already Used!', {}, res);
+        }
     }
     else {
         config.response(201, 'Invalid User!', {}, res);
     }
 
 
+}
+
+baseController.fundRequestList = async (req,res,next) => {
+    try {
+        const walletRequest = await WalletRequest.find({userId:req._id.toString()}).sort({created_at:-1});
+        if(walletRequest.length > 0){
+            config.response(200, 'Fund Request List Get Successfully!', walletRequest, res);
+        }else{
+            config.response(200, 'No Fund Request Found!', {}, res);
+        }
+    } catch (error) {
+        next(error);
+    }
 }
 
 baseController.BuyToken = async (req, res, created_by) => {
@@ -124,23 +144,24 @@ baseController.BuyToken = async (req, res, created_by) => {
         let gdxamount;
         const liveRate = await config.getLiveRateAmount();
         if (req.body.wallettype == 'gdx') {
-            usdamount = ((req.body.gdxamount) * (liveRate.data.result.message));
-            gdxamount = req.body.gdxamount;
-            walletamount = userextwalet.externalgdxWallet;
+              //usdamount = ((req.body.gdxamount) * (liveRate.data.result.message));
+              gdxamount = ((req.body.gdxamount) / (liveRate.data.result.message));
+            walletamount = userextwalet.externalGDXWallet;
         }
         else {
-            usdamount = req.body.gdxamount;
+                gdxamount = req.body.gdxamount;
+           // usdamount = req.body.gdxamount;
             walletamount = userextwalet.externalWallet;
-            gdxamount = ((req.body.gdxamount) / (liveRate.data.result.message));
+            //gdxamount = ((req.body.gdxamount) / (liveRate.data.result.message));
         }
-        if (usdamount <= walletamount) {
+        if (gdxamount <= walletamount) {
             const buytokendata = await BuyToken.find({ userId: userexist._id.toString() });
             if (buytokendata.length == 0) {
                 const buytoken = new BuyToken({
                     transactionId: transaction_id,
-                    gdxamount: gdxamount,
+                    gdxamount: ((req.body.gdxamount) / (liveRate.data.result.message)),
                     userId: userexist._id.toString(),
-                    usdamount: usdamount,
+                    usdamount: req.body.gdxamount,
                     tokenType: req.body.wallettype,
                     "status": 1,
                     createdBy: created_by.toString(),
@@ -153,24 +174,24 @@ baseController.BuyToken = async (req, res, created_by) => {
                         returnOriginal: false
                     }).exec(async (err, response) => {
                     })
-                    config.directSponsorCommission(req.body.username, gdxamount);
-                    config.binaryPVCount(req.body.username, gdxamount);
+                    config.directSponsorCommission(req.body.username, req.body.gdxamount);
+                    config.binaryPVCount(req.body.username, req.body.gdxamount);
                     config.binaryCommissionFun(req, res);
 
                     if (req.body.wallettype == 'gdx') {
                         const incomHistory = new IncomHistory(
                             {
                                 userId: userextwalet?._id?.toString(),
-                                amount: usdamount,
+                                amount: req.body.gdxamount,
                                 type: 'activate key',
                                 category: 'debit',
                                 status: 1,
-                                description: 'activate key : gdx ' + usdamount,
+                                description: 'activate key : ' + req.body.gdxamount,
                             });
                         incomHistory.save().then(async () => {
-                            const userwalletwallet = userextwalet.externalWallet - usdamount;
+                            const userwalletwallet = userextwalet.externalGDXWallet - (((req.body.gdxamount) / (liveRate.data.result.message)));
                             const userfilter = { _id: getuserid._id };
-                            const userdate = { wallet: userwalletwallet };
+                            const userdate = { externalGDXWallet: userwalletwallet };
                             const docdata = await Users.findOneAndUpdate(userfilter, userdate, {
                                 returnOriginal: false
                             }).exec(async (err, response) => {
@@ -181,16 +202,16 @@ baseController.BuyToken = async (req, res, created_by) => {
                         const incomHistory = new IncomHistory(
                             {
                                 userId: userextwalet?._id?.toString(),
-                                amount: usdamount,
+                                amount: req.body.gdxamount,
                                 type: 'activate key',
                                 category: 'debit',
                                 status: 1,
-                                description: 'activate key : $ ' + usdamount,
+                                description: 'activate key : $ ' + req.body.gdxamount,
                             });
                         incomHistory.save().then(async () => {
-                            const userwalletwallet = userextwalet.externalWallet - usdamount;
+                            const userwalletwallet = userextwalet.externalWallet - req.body.gdxamount;
                             const userfilter = { _id: getuserid._id };
-                            const userdate = { wallet: userwalletwallet };
+                            const userdate = { externalWallet: userwalletwallet };
                             const docdata = await Users.findOneAndUpdate(userfilter, userdate, {
                                 returnOriginal: false
                             }).exec(async (err, response) => {
@@ -214,9 +235,9 @@ baseController.BuyToken = async (req, res, created_by) => {
                 if (userexist.wallet >= totalBusiness) {
                     const buytoken = new BuyToken({
                         transactionId: transaction_id,
-                        gdxamount: gdxamount,
+                        gdxamount: ((req.body.gdxamount) / (liveRate.data.result.message)),
                         userId: userexist._id,
-                        usdamount: usdamount,
+                        usdamount: req.body.gdxamount,
                         tokenType: req.body.wallettype,
                         createdBy: created_by,
                     });
@@ -228,23 +249,23 @@ baseController.BuyToken = async (req, res, created_by) => {
                             returnOriginal: false
                         }).exec(async (err, response) => {
                         })
-                        config.binaryPVCount(req.body.username, usdamount);
+                        config.binaryPVCount(req.body.username, req.body.gdxamount);
                         config.binaryCommissionFun(req, res);
                         if (req.body.wallettype == 'gdx') {
                             const incomHistory = new IncomHistory(
                                 {
                                     userId: userextwalet?._id?.toString(),
-                                    amount: usdamount,
+                                    amount: req.body.gdxamount,
                                     type: 'activate key',
                                     category: 'debit',
                                     status: 1,
 
-                                    description: 'activate key retopup: gdx ' + usdamount,
+                                    description: 'activate key retopup: gdx ' + req.body.gdxamount,
                                 });
                             incomHistory.save().then(async () => {
-                                const userwalletwallet = userextwalet.externalWallet - usdamount;
+                                const userwalletwallet = userextwalet.externalGDXWallet - usdamount;
                                 const userfilter = { _id: getuserid._id };
-                                const userdate = { wallet: userwalletwallet };
+                                const userdate = { externalGDXWallet: userwalletwallet };
                                 const docdata = await Users.findOneAndUpdate(userfilter, userdate, {
                                     returnOriginal: false
                                 }).exec(async (err, response) => {
@@ -255,16 +276,16 @@ baseController.BuyToken = async (req, res, created_by) => {
                             const incomHistory = new IncomHistory(
                                 {
                                     userId: userextwalet?._id?.toString(),
-                                    amount: usdamount,
+                                    amount: req.body.gdxamount,
                                     type: 'activate key',
                                     category: 'debit',
                                     status: 1,
-                                    description: 'activate key retopup: $ ' + usdamount,
+                                    description: 'activate key retopup: $ ' + req.body.gdxamount,
                                 });
                             incomHistory.save().then(async () => {
-                                const userwalletwallet = userextwalet.externalWallet - usdamount;
+                                const userwalletwallet = userextwalet.externalWallet - req.body.gdxamount;
                                 const userfilter = { _id: getuserid._id };
-                                const userdate = { wallet: userwalletwallet };
+                                const userdate = { externalWallet: userwalletwallet };
                                 const docdata = await Users.findOneAndUpdate(userfilter, userdate, {
                                     returnOriginal: false
                                 }).exec(async (err, response) => {
@@ -326,45 +347,49 @@ baseController.treesecondlevel = async (req, res, next) => {
             sponsorid = req.user;
         }
         const gotparentID = await Users.findOne({ username: sponsorid });
-        const treedata = await Users.aggregate([
-            {
-                $addFields: {
-                    "usersid": { $toString: "$_id" }
-                }
-            },
-            {
-                $addFields: {
-                    "sponsor": { $toObjectId: "$sponsor" }
-                }
-            },
-            {
-                $lookup:
+        if(gotparentID == null ){
+            config.response(201, 'Invalid Id!', {}, res);
+        }else{
+            const treedata = await Users.aggregate([
                 {
-                    from: 'childcounters',
-                    localField: 'usersid',
-                    foreignField: 'uid',
-                    as: 'childcounters'
+                    $addFields: {
+                        "usersid": { $toString: "$_id" }
+                    }
                 },
-            },
-
-            {
-                $lookup:
                 {
-                    from: 'users',
-                    localField: "sponsor",
-                    foreignField: '_id',
-                    as: 'sponsorData'
+                    $addFields: {
+                        "sponsor": { $toObjectId: "$sponsor" }
+                    }
                 },
-            },
-            { $match: { parentId: gotparentID._id.toString() } },
-            { "$sort": { "position": 1 } }
-        ]);
-        var data = treedata
-        var datas = [];
-        for (let d of data) {
-            datas.push(await getDataObj(d));
+                {
+                    $lookup:
+                    {
+                        from: 'childcounters',
+                        localField: 'usersid',
+                        foreignField: 'uid',
+                        as: 'childcounters'
+                    },
+                },
+    
+                {
+                    $lookup:
+                    {
+                        from: 'users',
+                        localField: "sponsor",
+                        foreignField: '_id',
+                        as: 'sponsorData'
+                    },
+                },
+                { $match: { parentId: gotparentID._id.toString() } },
+                { "$sort": { "position": 1 } }
+            ]);
+            var data = treedata
+            var datas = [];
+            for (let d of data) {
+                datas.push(await getDataObj(d));
+            }
+            config.response(200, 'Record Fetched Successfully!', datas, res);
         }
-        config.response(200, 'Record Fetched Successfully!', datas, res);
     } catch (error) {
         next(error);
     }
@@ -376,6 +401,7 @@ baseController.userProfile = async (req, res) => {
     if (req.body.username) {
         if (gotparentID == null) {
             config.response(400, 'invalid user!', {}, res);
+            return;
         } else {
             sponsorid = gotparentID.tokens;
         }
@@ -412,6 +438,14 @@ baseController.userProfile = async (req, res) => {
                 foreignField: '_id',
                 as: 'sponsorData'
             },
+        },
+        {$lookup:
+            {
+                from:"buytokens",
+                localField:"usersid",
+                foreignField:"userId",
+                as:"activationData"
+            }
         },
         { $match: { tokens: sponsorid } },
     ], async (err, profiledata) => {
@@ -478,27 +512,37 @@ baseController.p2pTrans = async (req, res) => {
         if (getsenderuserid) {
             let gdxamount = req.body.gdxamount;
             let usdamount = req.body.gdxamount * 1;
-            let walletamount = getuserid.wallet;
+            let walletamount = (req.body.wallettype == 'USD') ? getsenderuserid.internalWallet : getsenderuserid.internalGDXWallet;
             if (gdxamount <= walletamount) {
                 const p2pTran = new P2pTran({
                     transactionId: transaction_id,
                     gdxamount: gdxamount,
+                    walletType: req.body.wallettype,
                     userId: getsenderuserid._id.toString(),
                     usdamount: usdamount,
                     status: getuserid.activ_member,
                     createdBy: getuserid._id.toString(),
                 });
                 p2pTran.save().then(async () => {
-
-                    const wallet = getsenderuserid.externalGDXWallet + gdxamount;
+                    if(req.body.wallettype == 'USD'){
+                        wallet = getsenderuserid.externalWallet + gdxamount;
+                        update = { externalWallet: wallet };
+                    }else{
+                        wallet = getsenderuserid.externalGDXWallet + gdxamount;
+                        update = { externalGDXWallet: wallet };
+                    }
                     const filter = { _id: getsenderuserid._id };
-                    const update = { externalGDXWallet: wallet };
                     const doc = await Users.findOneAndUpdate(filter, update, {
                         returnOriginal: false
                     }).exec(async (err, response) => {
-                        const userwalletwallet = getuserid.wallet - gdxamount;
+                        if(req.body.wallettype == 'USD'){
+                            userwalletwallet = getuserid.internalWallet - gdxamount;
+                            userdate = { internalWallet: userwalletwallet };
+                        }else{
+                            userwalletwallet = getuserid.internalGDXWallet - gdxamount;
+                            userdate = { internalGDXWallet: userwalletwallet };
+                        }
                         const userfilter = { _id: getuserid._id };
-                        const userdate = { wallet: userwalletwallet };
 
                         const docdata = await Users.findOneAndUpdate(userfilter, userdate, {
                             returnOriginal: false
@@ -554,7 +598,6 @@ baseController.p2pTrans = async (req, res) => {
 }
 
 const getDataObj = async (treedata) => {
-    console.log(treedata._id);
     ord = {
         "_id": treedata._id,
         "name": treedata.name,
@@ -587,7 +630,8 @@ const getDataObj = async (treedata) => {
         "directBusiness": await config.directBusiness(treedata._id.toString()),
         "directActiveMember": await Users.find({ sponsor: treedata._id.toString(), activ_member: '1' }).count(),
         "activeLeftMember": await config.activeMemberPosition(treedata._id.toString(), 'L'),
-        "activeRightMember": await config.activeMemberPosition(treedata._id.toString(), 'R')
+        "activeRightMember": await config.activeMemberPosition(treedata._id.toString(), 'R'),
+        "activationAmount":(treedata?.activationData != undefined && treedata?.activationData[0]?.usdamount) ? treedata?.activationData[0]?.usdamount : 0,
     }
     return ord;
 };
@@ -599,6 +643,7 @@ const getBuyToken = (buytoken) => {
         "gdxamount": buytoken.gdxamount,
         "usdamount": buytoken.usdamount,
         "status": buytoken.status,
+        "tokenType": buytoken.tokenType,
         "name": buytoken.users?.[0]?.name,
         "username": buytoken.users?.[0]?.username,
         "created_at": buytoken.created_at

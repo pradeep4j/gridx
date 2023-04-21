@@ -31,7 +31,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { useTreeItem } from '@mui/lab/TreeItem';
-
+import { logout } from '../routes/api';
 axios.defaults.withCredentials = true;
 const Navbar = () => {
     const navigate = useNavigate();
@@ -40,12 +40,9 @@ const Navbar = () => {
     const logoutUser = authCTX.logoutUser;
     const [name, setName] = useState('');
     const [userId, setUserid] = useState('');
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const drawerWidth = 240;
-    useEffect(() => {
-        navigate("Dashboard");
-        setOpen(true);
-    }, []);
+
     const useTreeItemStyles = makeStyles(theme => ({
         content: {
             flexDirection: "row-reverse"
@@ -150,12 +147,12 @@ const Navbar = () => {
         {
             text: "Fund Request",
             icon: <MoneyIcon />,
-           // onClick: (e) => onRegister(e)
+            // onClick: (e) => onRegister(e)
         },
         {
             text: "Withdrawl Request",
             icon: <AtmIcon />,
-            onClick: (e) => onRegister(e)
+            //onClick: (e) => onRegister(e)
         },
         {
             text: "Support",
@@ -209,7 +206,7 @@ const Navbar = () => {
     }
     ///side bar drawer code end
     const onLogout = async (e) => {
-        /*  await axios.get('http://localhost:8000/api/logout').then(response => {
+          await logout().then(response => {
               if (response.status === 201) {
                   setUserid('');
                   logoutUser();
@@ -217,7 +214,7 @@ const Navbar = () => {
                   localStorage.removeItem('user');
                   navigate('/login');
                   handleDrawerClose();
-                  toast.success('User is Logged out successfully!', {
+                  toast.success('GRIDX Admin is Logged out successfully!', {
                       position: "bottom-right",
                       hideProgressBar: false,
                       progress: undefined,
@@ -237,7 +234,7 @@ const Navbar = () => {
                   progress: undefined,
               });
           });
-  */
+  
     }
     ///tree view start
     const CustomContent = React.forwardRef(function CustomContent(props, ref) {
@@ -334,22 +331,25 @@ const Navbar = () => {
         nodeId: PropTypes.string.isRequired,
     };
     const handlechange = async (values) => {
-     /*   if(values === 'Master Management3'){
-            alert(values)
-            navigate("Addnews");
-        }*/
-      //  alert(values)
+        /*   if(values === 'Master Management3'){
+               alert(values)
+               navigate("Addnews");
+           }*/
+         // alert(values)
         switch (values) {
             case 'Master Management2':
                 navigate("Addoffer");
                 break;
             case 'Master Management3':
-             
+
                 navigate("Addnews");
                 break;
-                case 'Fund Request2':
-                    navigate("Fundrequest");
-                    break;
+            case 'Fund Request2':
+                navigate("Fundrequest");
+                break;
+            case 'Withdrawl Request2':
+                navigate("Withdrawlrequest");
+                break;
         }
         /*if(values === 'Master Management2'){
            navigate("Addoffer") 
@@ -463,6 +463,7 @@ const Navbar = () => {
                 {text === 'Fund Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
                         <CustomTreeItem nodeId="2" label="Fund Request Report" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="3" label="Pin Activation" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
                 {text === 'Withdrawl Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
@@ -494,9 +495,12 @@ const Navbar = () => {
         const user_detail = JSON.parse(user);
         if (user_detail) {
             setUserid(user_detail._id);
-            setEmail(user_detail.email);
+            setUsername(user_detail.username);
+           // navigate("Dashboard");
+            setOpen(true);
         }
     }, [isLoggedIn]);
+
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="fixed" open={open}>
@@ -506,21 +510,21 @@ const Navbar = () => {
                         aria-label="open drawer"
                         onClick={handleDrawerOpen}
                         edge="start"
+                       style ={{ pointerEvents: `${!userId ?  "none":""}`, cursor: `${!userId ?  "not-allowed":""}` }}
                         sx={{ mr: 2, ...(open && { display: 'none' }) }}
                     >
-                        <MenuIcon />
+                        <MenuIcon disabled="disabled" />
                     </IconButton>
                     <Typography variant='h5' component="div" sx={{ flexGrow: 1 }}>GRIDX ECOSYSTEM</Typography>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <Typography component="div" sx={{ flexGrow: 1 }} className={`${!userId ? "mystyle" : ""}`} >Welcome {email}</Typography>
+                    <Typography component="div" sx={{ flexGrow: 1 }} className={`${!userId ? "mystyle" : ""}`} >Welcome {username}</Typography>
                     {/* <NavLink style={{ color: 'white' }} color="inherit" to="/join" className={`${!userId ? "mystyle" : ""}`} >Join</NavLink>&nbsp;&nbsp;
                     <NavLink style={{ color: 'white' }} to="/tree/:id" className={`${!userId ? "mystyle" : ""}`} >Tree</NavLink>&nbsp;&nbsp; */}
                     <NavLink style={{ color: 'white' }} onClick={(e) => onLogout(e)} className={`${!userId ? "mystyle" : ""}`} ><LogoutIcon /></NavLink>
-                    <NavLink style={{ color: 'white' }} to="/login" className={`${userId ? "mystyle" : ""}`} ><LoginIcon /></NavLink>&nbsp;&nbsp;
-                    <NavLink style={{ color: 'white' }} to="/register" className={`${userId ? "mystyle" : ""}`}><PersonAddIcon /></NavLink>
+                    <NavLink style={{ color: 'white' }} to="/login" className={`${userId ? "mystyle" : ""}`} ><LoginIcon /></NavLink>
                 </Toolbar>
             </AppBar>
             {/*///side bar drawer code start*/}
-            <Drawer
+            {userId ? <Drawer
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
@@ -541,23 +545,8 @@ const Navbar = () => {
                 <Typography style={{ marginLeft: '5%', color: '#2462bf', fontWeight: 'bold' }}  >General</Typography>
                 <Divider />
                 <List>
-                    {userId && itemsList.map((item, index) => {
-                        const { text, icon, onClick } = item;
-                        return (
-                            <ListItem button key={text} onClick={onClick}
-                            >
-                                {icon && <ListItemIcon>{icon}</ListItemIcon>}
-                                <ListItemText primary={text} />
-                                {/* <ListItemButton>
-                            <ListItemIcon>
-
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton> */}
-                            </ListItem>
-                        )
-                    })}
-                    {!userId && itemsListNotLoggedIn.map((item, index) => {
+                    
+                    {userId && itemsListNotLoggedIn.map((item, index) => {
 
                         const { text, icon, onClick } = item;
                         // alert(text)
@@ -590,6 +579,7 @@ const Navbar = () => {
                 </List>
                 <Divider />
             </Drawer>
+            :''}
             {/*///side bar drawer code end*/}
             <Main open={open}>
 

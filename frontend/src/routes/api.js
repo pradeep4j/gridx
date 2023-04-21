@@ -1,9 +1,18 @@
 import axios from 'axios';
 import {http,getToken} from '../utils/localStorage'
-const URL = 'http://localhost:8000/api/user'; 
+const URL = 'http://localhost:5000/admin'; 
+const IMAGE_URL = 'http://localhost:3000/gridx/frontend/assets'; 
+export const getImageUrl = () => {
+   // let URL = `${getUrl()}/api/user`;
+    return IMAGE_URL;
+}
+export const getUrl = () => {
+    return URL;
+}
 axios.defaults.withCredentials = true;  
 ///api of users starts
 export const login = async(data) => {
+  //  alert(`${URL}/login`)
    return await axios.post(`${URL}/login`,data);
 }
 export const logout = async() => {
@@ -54,14 +63,25 @@ export const allnews = async(id) => {
     }*/
     return await http.get(`${URL}/allnews/${id}`/*,config*/);
 }
-export const getallfundrequest = async(id) => {  
+export const getallfundrequest = async(data) => {  
+    const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }
+  //  alert(`Bearer ${getToken()}`); return;
+    return await axios.post(`${URL}/walletrequest`,data,config);
+    //return await axios.post('http://52.66.201.237:5000/admin/walletrequest',data); //live
+}
+export const getrequestwithdrawl = async(data) => {  
     /*const config = {
         headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
         }
     }*/
-    return await http.get(`${URL}/getallfundrequest/${id}`/*,config*/);
+    return await axios.post('http://52.66.201.237:5000/admin/walletRequest',data);
 }
 export const updateUsersProfileById = async(data,id) => {
 
