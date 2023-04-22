@@ -18,3 +18,12 @@
     padding-bottom: 23px;
     font-size: 2.8em;
 }
+.modal__close {
+    position: absolute;
+    top: 2%;
+    right:6%;
+    font-size: 24px;
+    font-weight: 500;
+    cursor: pointer;
+}
+

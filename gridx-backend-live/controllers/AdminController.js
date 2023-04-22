@@ -76,13 +76,13 @@ adminController.PinSystem = async (req, res) => {
             else 
             {
                 
-                config.response(400, 'Id is Already Activated!', {}, res);
+                config.response(200, 'Id is Already Activated!', {}, res);
             }
         }
         else 
         {
             
-            config.response(400, 'Invalid User!', {}, res);
+            config.response(200, 'Invalid User!', {}, res);
         }
 }
 
@@ -93,15 +93,6 @@ adminController.walletRequest = async (req, res, next) =>
         if(req.body.status != undefined && req.body.status != ''){
             query = {...query,status:req.body.status};
         }
-        if(req.body.fromdate != undefined && req.body.fromdate != ''){
-            query = {...query,status:req.body.fromdate};
-        }
-        if(req.body.todate != undefined && req.body.todate != ''){
-            query = {...query,status:req.body.todate};
-        }
-        if(req.body.userId != undefined && req.body.userId != ''){
-            query = {...query,status:req.body.userId};
-        }        
         if(req?.body?.page != undefined){
             skip = (req?.body?.page-1)*10;
             userexist = await WalletRequest.aggregate([
@@ -112,7 +103,6 @@ adminController.walletRequest = async (req, res, next) =>
                 },
                 {
                     $lookup:{
-
                         from:"users",
                         localField:"userId",
                         foreignField:"_id",
@@ -133,7 +123,6 @@ adminController.walletRequest = async (req, res, next) =>
                 },
                 {
                     $lookup:{
-
                         from:"users",
                         localField:"userId",
                         foreignField:"_id",
@@ -174,7 +163,7 @@ adminController.approveRejectWalletRequest= async (req, res, next) =>
                         returnOriginal: false
                     }).exec(async(err, response) => {
                         const walletfilter = { _id: walletrequest._id };
-                        const userdate = { status: 1,remarks:remarks};
+                        const userdate = { status: 1,remarks:remarks,updated_at:new Date()};
                         const docdata = await WalletRequest.findOneAndUpdate(walletfilter, userdate, {
                             returnOriginal: false
                         }).exec(async(err, response) => {
@@ -194,7 +183,7 @@ adminController.approveRejectWalletRequest= async (req, res, next) =>
                 })
             }else{
                 const walletfilter = { _id: requestId };
-                const userdate = { status:2,remarks:remarks};
+                const userdate = { status:2,remarks:remarks,updated_at:new Date()};
                 const docdata = await WalletRequest.findOneAndUpdate(walletfilter, userdate, {
                     returnOriginal: false
                 }).exec(async(err, response) => {
@@ -207,49 +196,6 @@ adminController.approveRejectWalletRequest= async (req, res, next) =>
     } catch (error) {
         next(error);
     }
-    // const walletrequest = await WalletRequest.findOne({_id:req.body.id});
-    // if(req.body.type==1)
-    // {
-    //     const userexist = await Users.findOne({ _id: ObjectId(walletrequest.userId) });
-    //     const userfilter = { _id: userexist._id };
-    //     const walletrequestdata=walletrequestdata+walletrequest.gdxamount;
-    //     const userdate = { externalWallet: walletrequestdata};
-    //     const docdata = await Users.findOneAndUpdate(userfilter, userdate, {
-    //             returnOriginal: false
-    //         }).exec(async(err, response) => {
-    //             const walletfilter = { _id: walletrequest._id };
-    //             const userdate = { status: 1,description:req.body.description};
-    //             const docdata = await WalletRequest.findOneAndUpdate(walletfilter, userdate, {
-    //                 returnOriginal: false
-    //             }).exec(async(err, response) => {
-                    
-    //             })
-    //     })
-    // }
-    // else
-    // {
-    //     const walletfilter = { _id: walletrequest._id };
-    //     const userdate = { status:2,description:req.body.description};
-    //     const docdata = await WalletRequest.findOneAndUpdate(walletfilter, userdate, {
-    //         returnOriginal: false
-    //     }).exec(async(err, response) => {
-            
-    //     })
-
-    // }
-    // const incomHistory = new IncomHistory(
-    //     {
-    //         userId: walletrequest.userId,
-    //         amount: walletrequest.gdxamount,
-    //         type: 'wallet_request',
-    //         category: 'debit',
-    //         status: req.body.type,
-    //         description: 'Wallet Request And Approved By Admin $' + walletrequest.gdxamount,
-    //     });
-    // incomHistory.save().then(async () => {
-
-    // })
 }
 
 module.exports = adminController;
-

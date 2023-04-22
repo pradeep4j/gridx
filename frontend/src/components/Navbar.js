@@ -137,7 +137,7 @@ const Navbar = () => {
         {
             text: "User Management",
             icon: <PersonAddIcon />,
-            onClick: (e) => onLogin(e)
+            //onClick: (e) => onLogin(e)
         },
         {
             text: "Accounts",
@@ -206,35 +206,35 @@ const Navbar = () => {
     }
     ///side bar drawer code end
     const onLogout = async (e) => {
-          await logout().then(response => {
-              if (response.status === 201) {
-                  setUserid('');
-                  logoutUser();
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('user');
-                  navigate('/login');
-                  handleDrawerClose();
-                  toast.success('GRIDX Admin is Logged out successfully!', {
-                      position: "bottom-right",
-                      hideProgressBar: false,
-                      progress: undefined,
-                  });
-              }
-              else {
-                  toast.error(response.data, {
-                      position: "bottom-right",
-                      hideProgressBar: false,
-                      progress: undefined,
-                  });
-              }
-          }).catch(error => {
-              toast.error(error.message, {
-                  position: "bottom-right",
-                  hideProgressBar: false,
-                  progress: undefined,
-              });
-          });
-  
+        await logout().then(response => {
+            if (response.status === 201) {
+                setUserid('');
+                logoutUser();
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
+                handleDrawerClose();
+                toast.success('GRIDX Admin is Logged out successfully!', {
+                    position: "bottom-right",
+                    hideProgressBar: false,
+                    progress: undefined,
+                });
+            }
+            else {
+                toast.error(response.data, {
+                    position: "bottom-right",
+                    hideProgressBar: false,
+                    progress: undefined,
+                });
+            }
+        }).catch(error => {
+            toast.error(error.message, {
+                position: "bottom-right",
+                hideProgressBar: false,
+                progress: undefined,
+            });
+        });
+
     }
     ///tree view start
     const CustomContent = React.forwardRef(function CustomContent(props, ref) {
@@ -335,24 +335,29 @@ const Navbar = () => {
                alert(values)
                navigate("Addnews");
            }*/
-         // alert(values)
+        //  alert(values)
         switch (values) {
             case 'Master Management2':
                 navigate("Addoffer");
                 break;
             case 'Master Management3':
-
                 navigate("Addnews");
                 break;
             case 'Fund Request2':
                 navigate("Fundrequest");
                 break;
+            case 'Fund Request3':
+                navigate("Pinactivation");
+                break;
             case 'Withdrawl Request2':
                 navigate("Withdrawlrequest");
                 break;
+            case 'User Management3':
+                navigate("Userreport");
+                break;
         }
         /*if(values === 'Master Management2'){
-           navigate("Addoffer") 
+           navigate("Addoffer")  
         }*/
     }
     const CustomTreeItem = (props) => {
@@ -463,7 +468,7 @@ const Navbar = () => {
                 {text === 'Fund Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
                         <CustomTreeItem nodeId="2" label="Fund Request Report" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="3" label="Pin Activation" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="3" label="Pin Activation" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
                 {text === 'Withdrawl Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
@@ -496,7 +501,7 @@ const Navbar = () => {
         if (user_detail) {
             setUserid(user_detail._id);
             setUsername(user_detail.username);
-           // navigate("Dashboard");
+            // navigate("Dashboard");
             setOpen(true);
         }
     }, [isLoggedIn]);
@@ -510,7 +515,7 @@ const Navbar = () => {
                         aria-label="open drawer"
                         onClick={handleDrawerOpen}
                         edge="start"
-                       style ={{ pointerEvents: `${!userId ?  "none":""}`, cursor: `${!userId ?  "not-allowed":""}` }}
+                        style={{ pointerEvents: `${!userId ? "none" : ""}`, cursor: `${!userId ? "not-allowed" : ""}` }}
                         sx={{ mr: 2, ...(open && { display: 'none' }) }}
                     >
                         <MenuIcon disabled="disabled" />
@@ -545,7 +550,7 @@ const Navbar = () => {
                 <Typography style={{ marginLeft: '5%', color: '#2462bf', fontWeight: 'bold' }}  >General</Typography>
                 <Divider />
                 <List>
-                    
+
                     {userId && itemsListNotLoggedIn.map((item, index) => {
 
                         const { text, icon, onClick } = item;
@@ -579,7 +584,7 @@ const Navbar = () => {
                 </List>
                 <Divider />
             </Drawer>
-            :''}
+                : ''}
             {/*///side bar drawer code end*/}
             <Main open={open}>
 

@@ -1,40 +1,98 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table } from 'antd';
-import dayjs from 'dayjs';
+//import { Table } from 'antd';
+//import dayjs from 'dayjs';
+import '../../hide.css';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {  Row, Col } from 'react-bootstrap';
+import { Table, Row, Col } from 'react-bootstrap';
 //import Allfundrecord from './Allfundrecord';
-import { Typography, FormGroup, Select, TextField, FormControl, MenuItem, styled, Button, TablePagination, FormLabel,InputLabel } from '@mui/material';
+import { Typography, FormGroup, Select, TextField, FormControl, MenuItem, styled, Button, TablePagination, FormLabel, Paper } from '@mui/material';
 import Loading from "../../components/Loading";
 import { toast } from 'react-toastify';
 import { getallfundrequest } from '../../routes/api';
+import getDateString from '../../utils/getdatestring';
+import Popup from "../../components/Popup";
+import FundApprovereject from './FundApprovereject';
 const Fundrequest = () => {
     const navigate = useNavigate();
+    const [open, setOpen] = useState(false);
+    const [openPopup, setOpenPopup] = useState(false);
+    const [pageTitle, setPageTitle] = useState('');
+    const [modalWidth, setModalWidth] = useState();
+    const [recordForEdit, setRecordForEdit] = useState(null);
     const [dataPage, setDataPage] = useState(0);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [allfundContent, setallfundContent] = useState();
-    const handleChangePage = (event, newPage) => setPage(newPage);
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 2));
-        setPage(0);
-    };
     const [spinner, setSpinner] = useState(false);
     const [fromdate, setFromDate] = useState('');
     const [todate, setToDate] = useState('');
     const [userId, setUserId] = useState('');
     const [status, setStatus] = useState(0);
-    
+
+    const handleChangePage = (event, newPage) => setPage(newPage);
+    const Item = styled(Paper)(({ theme }) => ({
+        backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+        ...theme.typography.body2,
+        padding: theme.spacing(2),
+        textAlign: 'center',
+        color: theme.palette.text.secondary,
+    }));
+    const openInPopupForUpdate = (item) => {
+        setRecordForEdit(item);
+        setOpenPopup(true);
+        setPageTitle('Edit Fund Request Status');
+        setModalWidth('500px');
+    }
+    const addOrEdit = (e) => {
+        //alert(fromdate+'='+todate+'='+userId+'='+status)
+        relodreport(e);
+        setRecordForEdit(null);
+        setOpenPopup(false);
+    }
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 2));
+        setPage(0);
+    };
+    const relodreport = async () => {
+        const postBody = {
+            fromdate: fromdate,
+            todate: todate,
+            userId: userId,
+            status: status
+        }
+        // alert(JSON.stringify(postBody));
+        setSpinner(true)
+        await getallfundrequest(postBody).then(response => {
+
+            if (response.status === 200 || response.status === true) {
+                setSpinner(false);
+                setallfundContent(response.data.data);
+            }
+            else {
+                setSpinner(false);
+                toast.error(response.data, {
+                    position: "bottom-right",
+                    hideProgressBar: false,
+                    progress: undefined,
+                });
+            }
+        }).catch((error) => {
+            setSpinner(false);
+            console.log(error.message);
+            /*  toast.error(error.message, {
+                      position: "bottom-right",
+                      hideProgressBar: false,
+                      progress: undefined,
+              });*/
+        });
+    }
     useEffect(() => {
-        //fetchign all news
-       // getfundrequest();
         setPage(0);
     }, [dataPage]);
-    
+    let allfundContents = [];
     const onSubmit = async (e) => {
         e.preventDefault();
         const postBody = {
@@ -43,16 +101,16 @@ const Fundrequest = () => {
             userId: userId,
             status: status
         }
+        // alert(JSON.stringify(postBody));
         setSpinner(true)
         await getallfundrequest(postBody).then(response => {
-            
+
             if (response.status === 200 || response.status === true) {
-                  setSpinner(false);
-               // alert(JSON.stringify(response.data));
+                setSpinner(false);
                 setallfundContent(response.data.data);
             }
             else {
-                 // setSpinner(false);
+                setSpinner(false);
                 toast.error(response.data, {
                     position: "bottom-right",
                     hideProgressBar: false,
@@ -60,7 +118,7 @@ const Fundrequest = () => {
                 });
             }
         }).catch((error) => {
-              setSpinner(false);
+            setSpinner(false);
             console.log(error.message);
             /*  toast.error(error.message, {
                       position: "bottom-right",
@@ -68,102 +126,48 @@ const Fundrequest = () => {
                       progress: undefined,
               });*/
         });
-        
+
     }
     let listContent;
     let count = 0;
+    for (let i in allfundContent) {
+        allfundContents.push(allfundContent[i]);
+    }
+    count = allfundContents?.length;
     //alert(spinner)
-    if (spinner) {
-        listContent = <tr><td colSpan='9'><h5>Loading...</h5></td></tr>
-    }
-    else {
-        count = allfundContent?.length;
-      //  alert(count)
-       // listContent = allfundContent.map((funds) => (<Allfundrecord Allfundrecord={funds} />)) 
-          /*  allfundContent && allfundContent?.length > 0 ?
-                (listContent = allfundContent.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((funds) => (<Allfundrecord Allfundrecord={funds} />))) : (listContent = <tr><td colSpan='4'><h5>No record found</h5></td></tr>)*/
-        
-    }
-    // DESTRUCTURING DATA FOR DATA TABLE
-    const data = [...allfundContent];
-    console.log(allfundContent);
-    // DEFINING DATA TABLE COLUMNS
-    const columns = [
-        {
-            title: "#",
-            key: 'sr',
-            dataIndex: 'sr',
-            render: (_, elem, index) => index + 1
-        },
-        {
-            title: "Status", //Status
-            key: 'status',
-            dataIndex: 'status',
-            render: (_, elem) => {
-                return (elem.status == 0) ? 'Pending' : (elem.status == 1) ? 'Approved' : 'Rejected' 
-            }
-        },
-        {
-            title: "User Id",
-            key: 'userId',
-            dataIndex: 'userId',
-        },
-        {
-            title: "Deposit Wallet",
-            key: 'deposit_wallet',
-            dataIndex: 'deposit_wallet',
-            render: (_, elem) => {
-                return "GDX" 
-            }
-        },
-        {
-            title: "Date of Request",
-            key: 'created_at',
-            dataIndex: 'created_at',
-            render: (_, elem) => <span className="sub sub-s2">
-                {(new Date(elem.created_at))?.toDateString()} {(new Date(elem.created_at))?.toLocaleTimeString()}
-            </span>
-        },
-        {
-            title: "Approve Date",
-            key: 'updated_at',
-            dataIndex: 'updated_at',
-            render: (_, elem) => <span className="sub sub-s2">
-                {(new Date(elem.updated_at))?.toDateString()} {(new Date(elem.updated_at))?.toLocaleTimeString()}
-            </span>
-        },
-        {
-            title: "Amount",
-            key: 'gdxamount',
-            dataIndex: 'gdxamount',
-        },
-        {
-            title: "Transaction Id",
-            key: 'hash',
-            dataIndex: 'hash',
-        },
-        {
-            title: "Remark",
-            key: 'remark',
-            dataIndex: 'remark',
-        },   
-        {
-            title: "Action",
-            key: 'action',
-            dataIndex: 'action',
+    /*  if (spinner) {
+          listContent = <tr><td colSpan='9'><h5>Loading...</h5></td></tr>
+      }
+      else {
+          count = allfundContent?.length;
+          //  alert(count)
+          // listContent = allfundContents.map((funds) => (<Allfundrecord Allfundrecord={funds} />)) 
+          allfundContent && allfundContent?.length > 0 ?
+              (listContent = allfundContent.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((funds) => (<Allfundrecord Allfundrecord={funds} />))) : (listContent = <tr><td colSpan='9'><h5>No record found!</h5></td></tr>)
+  
+      }*/
 
-        }             
-     ];
     return (
         <Container>
-
+            <Popup openPopup={openPopup} pageTitle={pageTitle} setOpenPopup={setOpenPopup} modalWidth={modalWidth}>
+                {(openPopup) && <FundApprovereject addOrEdit={(e) => addOrEdit(e)} recordForEdit={recordForEdit} />}
+            </Popup>
+            {/* <Popup
+                title="Edit Fund Request Status"
+                openPopup={openPopup}
+                setOpenPopup={setOpenPopup}
+            >
+                <FundApprovereject
+                    recordForEdit={recordForEdit}
+                     />
+            </Popup> */}
             <Typography variant="h5">Fund Request<Ptags></Ptags></Typography>
-           
+
             <FormControl>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer
                         components={[
-                            
+
                         ]}
                     >
                         <DemoItem label="From Date">
@@ -211,35 +215,55 @@ const Fundrequest = () => {
                     <div className='row'>
                         <div className='col-md-11'>
                             <div className='card'>
-                             <Table columns={columns} dataSource={data} /> 
-                                {/* <Table scope="col"
+                                <Table scope="col"
                                     striped
                                     bordered
                                     responsive
-                                    className='table-sm text-center'>
+                                    className='table-sm text-center' style={{ overflow: 'auto' }}>
                                     <thead className='fonts'>
-                                        <tr><td style={{ widtd: '10px' }}>#</td><td style={{ width: '100px', textAlign: 'center' }}>Status</td><td style={{ width: '100px', textAlign: 'center' }}>User Id</td><td style={{ width: '100px', textAlign: 'center' }}>User Name</td>
-                                            <td style={{ width: '150px', textAlign: 'center' }}>Deposit Wallet</td><td style={{ width: '150px', textAlign: 'center' }}>Amount</td>
-                                            <td style={{ width: '150px', textAlign: 'center' }}>Transaction Id</td>
-                                            <td style={{ width: '100px', textAlign: 'center' }}>Remark</td>
-                                            <td style={{ width: '100px', textAlign: 'center' }}>Action</td>
+                                        <tr>
+                                            {/* <td style={{ widtd: '10px' }}>#</td> */}
+                                            <td >User Id</td>
+                                            <td >User Name</td>
+                                            <td >Deposit Wallet</td>
+                                            <td >Date of Request</td>
+                                            <td >Approve Date</td>
+                                            <td >Amount</td>
+                                            <td >Transaction Id</td>
+                                            <td >Remark</td>
+                                            <td >Status</td>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {listContent}
+                                        {allfundContents && allfundContents?.length > 0 ?
+                                            (allfundContents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((funds) =>
+
+                                                <tr key={funds._id}>
+                                                    <td>{funds.userId}</td>
+                                                    <td>{funds.userName}</td>
+                                                    <td >GDX</td>
+                                                    <td >{getDateString(funds.created_at)}</td>
+                                                    <td >{getDateString(funds.updated_at)}</td>
+                                                    <td >{(funds.gdxamount).toFixed(2)}</td>
+                                                    <td ><a /*className='btn btn-success btn-sm'*/ target="_blank" href={funds.hashUrl
+                                                    } >{(funds.hash).slice(0, 30)}</a></td>
+                                                    <td >{funds.remarks}</td>
+                                                    <td>{funds.status === 1 ? (<Button variant="contained" style={{ backgroundColor: 'green', pointerEvents: 'none' }} >Approved</Button>) : funds.status === 2 ? (<Button variant="contained" style={{ backgroundColor: 'red', pointerEvents: 'none' }} >Rejected</Button>) : <Button variant="contained" /*style={{ backgroundColor: 'green' }}*/ onClick={() => openInPopupForUpdate(funds)}>Approve/Reject</Button>}</td>
+                                                </tr>)) : (listContent = <tr><td colSpan='9'><h5>No record found!</h5></td></tr>)
+                                        }
                                     </tbody>
                                 </Table>
-                                {count >0 ?
-                                <TablePagination
-                                    rowsPerPageOptions={[0]}
-                                    component="div"
-                                    count={count}
-                                    rowsPerPage={rowsPerPage}
-                                    page={page}
-                                    onPageChange={handleChangePage}
-                                    onRowsPerPageChange={handleChangeRowsPerPage}
-                                />
-                                    : ''} */}
+                                {count > 0 ?
+                                    <TablePagination
+                                        rowsPerPageOptions={[0]}
+                                        component="div"
+                                        count={count}
+                                        rowsPerPage={rowsPerPage}
+                                        page={page}
+                                        onPageChange={handleChangePage}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
+                                    />
+                                    : ''}
                             </div>
                         </div>
                     </div>
