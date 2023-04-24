@@ -196,48 +196,68 @@ const Fundrequest = () => {
                      />
             </Popup> */}
             <Typography variant="h5">Fund Request<Ptags></Ptags></Typography>
+            <Row style={{ width: '975px' }}>
+                <Col >
+                    <FormControl>
+                        <DemoContainer
+                            components={[
 
-            <FormControl>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DemoContainer
-                        components={[
+                            ]}
+                        >
+                            <DemoItem label="From Date">
+                                <TextField onChange={(e) => setFromDate(e.target.value)} value={fromdate} type="date" />
+                            </DemoItem>
 
-                        ]}
-                    >
-                        <DemoItem label="From Date">
-                            <TextField onChange={(e) => setFromDate(e.target.value)} value={fromdate} type="date" />
-                        </DemoItem>
+                            <DemoItem label="To Date" >
 
-                        <DemoItem label="To Date" >
+                                <TextField onChange={(e) => setToDate(e.target.value)} value={todate} type="date" />
+                            </DemoItem>
+                        </DemoContainer>
+                    </FormControl>
+                </Col>
+                <Col >
+                    <FormControl>
+                        <DemoContainer
+                            components={[
 
-                            <TextField onChange={(e) => setToDate(e.target.value)} value={todate} type="date" />
-                        </DemoItem>
-                        <DemoItem label="User Id" >
-                            <TextField onChange={(e) => setUserId(e.target.value)} value={userId} />
-                        </DemoItem>
-                        <DemoItem label="Status" >
+                            ]}
+                        >
+                            <DemoItem label="User Id"  >
+                                <TextField onChange={(e) => setUserId(e.target.value)} value={userId} />
+                            </DemoItem>
+                        </DemoContainer>
+                    </FormControl>
+                </Col>
+                <Col >
+                    <FormControl>
+                        <DemoContainer
+                            components={[
 
-                            <Select style={{ width: '150px' }}
-                                defaultValue={0}
-                                name="status"
-                                id="status"
-                                onChange={(e) => setStatus(e.target.value)}
-                                value={status}
-                            >
-                                <MenuItem value="">Select Status</MenuItem>
-                                <MenuItem value={0}>Pending</MenuItem>
-                                <MenuItem value={1}>Approved</MenuItem>
-                                <MenuItem value={2}>Rejected</MenuItem>
-                            </Select>
-                        </DemoItem>
-                    </DemoContainer>
-                </LocalizationProvider>
-            </FormControl>
-
-            <FormControl>
-                <Buttons variant="contained" id="submitting" type="submit" onClick={(e) => { onSubmit(e) }}>Search</Buttons>
-            </FormControl>
-
+                            ]}
+                        >
+                            <DemoItem label="Status" >
+                                <Select style={{ width: '150px' }}
+                                    defaultValue={0}
+                                    name="status"
+                                    id="status"
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    value={status}
+                                >
+                                    <MenuItem value="">Select Status</MenuItem>
+                                    <MenuItem value={0}>Pending</MenuItem>
+                                    <MenuItem value={1}>Approved</MenuItem>
+                                    <MenuItem value={2}>Rejected</MenuItem>
+                                </Select>
+                            </DemoItem>
+                        </DemoContainer>
+                    </FormControl>
+                </Col>
+                <Col>
+                    <FormControl>
+                        <Buttons variant="contained" id="submitting" type="submit" onClick={(e) => { onSubmit(e) }}>Search</Buttons>
+                    </FormControl>
+                </Col>
+            </Row>
             {spinner ? (
                 <Loading />
             ) :
@@ -324,5 +344,8 @@ const Ptags = styled('p')`
 font-size:12px;
 `
 const Buttons = styled(Button)`
-width: 30%;
+width: 100%;
+line-height:3.1;
+margin-top:'15%';
+margin: 37% auto 0 auto;
 `

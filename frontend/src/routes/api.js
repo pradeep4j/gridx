@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {http,getToken} from '../utils/localStorage'
+//alert(`${getAdminUrl}/addoffer`)
 const URL = 'http://localhost:5000/admin'; 
 const IMAGE_URL = 'http://localhost:3000/gridx/frontend/assets'; 
 export const getImageUrl = () => {
@@ -29,10 +30,10 @@ export const addoffer = async(data) => {
 }
 export const addnews = async(data) => {
     const config = {
-       /* headers: {
+        headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
-        }*/
+        }
     }
     return await axios.post(`${URL}/addnews`,data/*,config*/);
 }

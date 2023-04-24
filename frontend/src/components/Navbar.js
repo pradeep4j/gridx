@@ -41,7 +41,7 @@ const Navbar = () => {
     const [name, setName] = useState('');
     const [userId, setUserid] = useState('');
     const [username, setUsername] = useState('');
-    const drawerWidth = 240;
+    const drawerWidth = 260;
 
     const useTreeItemStyles = makeStyles(theme => ({
         content: {
@@ -343,6 +343,9 @@ const Navbar = () => {
             case 'Master Management3':
                 navigate("Addnews");
                 break;
+        /*    case 'Master Management4':
+                navigate("Addslider");
+                break;*/
             case 'Fund Request2':
                 navigate("Fundrequest");
                 break;
@@ -428,10 +431,12 @@ const Navbar = () => {
                         <CustomTreeItem nodeId="2" label="Add User" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="3" label="User Report" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="4" label="User Report(Balance)" onClick={(e) => handlechange(`${text}` + 4)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="5" label="Downline Report" onClick={(e) => handlechange(`${text}` + 5)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+
                         <CustomTreeItem nodeId="6" label="Direct Downline Report" onClick={(e) => handlechange(`${text}` + 6)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="7" label="User Login Report" onClick={(e) => handlechange(`${text}` + 7)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="8" label="User Topup" onClick={(e) => handlechange(`${text}` + 8)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+
+                        <CustomTreeItem nodeId="9" label="Add Carry Forword" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="9" label="Add Carry Forword Report" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="9" label="User Topup Report" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="10" label="Binary Report" onClick={(e) => handlechange(`${text}` + 10)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
@@ -468,7 +473,8 @@ const Navbar = () => {
                 {text === 'Fund Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
                         <CustomTreeItem nodeId="2" label="Fund Request Report" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="3" label="Pin Activation" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="3" label="User Activation" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="4" label="User Activation Report" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
                 {text === 'Withdrawl Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >

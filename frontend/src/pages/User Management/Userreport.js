@@ -14,12 +14,15 @@ import { toast } from 'react-toastify';
 import { getuserreport } from '../../routes/api';
 import Edituserdetails from './Edituserdetails';
 import getDateString from '../../utils/getdatestring';
+import getData from '../../utils/getData';
 import Popup from "../../components/Popup";
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import * as Yup from 'yup'; // Yup is a JavaScript object schema validator.
 import { useFormik } from 'formik'; //formik is third party React form library. It provides basic form programming 
+import axios from 'axios';
+const URL = 'http://localhost:5000/admin'; 
 //import FundApprovereject from './FundApprovereject';
 const Userreport = () => {
     const navigate = useNavigate();
@@ -32,7 +35,7 @@ const Userreport = () => {
     const [pageTitle, setPageTitle] = useState('')
     const [recordForEdit, setRecordForEdit] = useState(null);
     const [dataPage, setDataPage] = useState(0);
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [alluserdata, setAllUserdata] = useState();
 
@@ -41,15 +44,62 @@ const Userreport = () => {
 
     const [spinner, setSpinner] = useState(false);
     //  const [country, setCountry] = useState(countries[104].code);
-    const [states, setStates] = useState();
     const [fromdate, setFromDate] = useState('');
     const [todate, setToDate] = useState('');
     const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [address, setAddress] = useState('');
-    const [name, setName] = useState('');
     const [totaluser, setTotalUser] = useState();
-    const [mobile, setMobile] = useState('');
+
+    let daterange;
+        if (fromdate !== '') {
+            daterange = [fromdate, fromdate];
+        }
+        if (todate !== '') {
+            daterange = [todate, todate];
+        }
+        if (fromdate !== '' && todate !== '') {
+            daterange = [fromdate, todate];
+        }
+        if (fromdate === '' && todate === '') {
+            daterange = "";
+        }
+    useEffect(() => {
+        const postBody = {
+            page: page,
+            search: username,
+            range: daterange
+        }
+        const res = getData({cred:{...postBody}})
+        res.then(response=>{
+            if (response.data.status === true) {
+               // console.log(response.data.data?.[0].users)
+                 setSpinner(false);
+                 setAllUserdata(response.data.data?.[0].users);
+                // alluserdatas.push(response.data.data[0].users);
+                 setTotalUser(response.data.data?.[0].totalUser);
+                // //  alert(response.data.status)
+                //alert(response.data.data?.[0].totalUser)
+            }
+            else {
+                setSpinner(false);
+                toast.error(response.message.data, {
+                    position: "bottom-right",
+                    hideProgressBar: false,
+                    progress: undefined,
+                });
+            }
+            // setAllUserdata(alluserdatas[0]);
+        }).catch((error) => {
+            setSpinner(false);
+            console.log(error.message);
+            /*  toast.error(error.message, {
+                      position: "bottom-right",
+                      hideProgressBar: false,
+                      progress: undefined,
+              });*/
+        });  
+    }, [dataPage, page]);
+
+    console.log(alluserdata)
     const schema = Yup.object({
         /*  email: Yup.string('')
               .email('Email is invalid!'),
@@ -68,49 +118,7 @@ const Userreport = () => {
         // range: ["2023-4-16", "2023-4-18"]
 
     }
-    // DEFINING PAGENATION VALUES
-    const perPage = 10;
-    const [size, setSize] = useState(perPage);
-    const [current, setCurrent] = useState(1);
 
-    const PerPageChange = (value) => {
-        setSize(value);
-        const newPerPage = Math.ceil(totaluser / value);
-        if (current > newPerPage) {
-            setCurrent(newPerPage);
-        }
-    };
-
-    const getData = (current, pageSize) => {
-        // Normally you should get the data from the server
-        // console.log(alluserdata);
-        return alluserdata.slice((current - 1) * pageSize, current * pageSize);
-    };
-
-    const PaginationChange = (page, pageSize) => {
-        setCurrent(page);
-        setSize(pageSize);
-    };
-
-    const PrevNextArrow = (current, type, originalElement) => {
-
-        if (type === "prev") {
-            // alert(current)
-            return (
-                <button >
-                    <KeyboardArrowLeftIcon onClick={relodreportPrew} />
-                </button>
-            );
-        }
-        if (type === "next") {
-            return (
-                <button >
-                    <KeyboardArrowRightIcon onClick={relodreportNext} />
-                </button>
-            );
-        }
-        return originalElement;
-    };
     //for inline validations via Yup and formik
     const formik = useFormik({
         initialValues: initialValues,
@@ -119,7 +127,7 @@ const Userreport = () => {
             onStatusUpdate(values, resetForm);
         }
     });
-    const handleChangePage = (event, newPage) => setPage(newPage);
+
     const Item = styled(Paper)(({ theme }) => ({
         backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
         ...theme.typography.body2,
@@ -132,6 +140,7 @@ const Userreport = () => {
         setOpenPopup(true);
         setPageTitle('Edit User Details');
     }
+    // alert(page)
     const addOrEdit = (e) => {
         //alert(fromdate+'='+todate+'='+userId+'='+status)
         relodreport(e);
@@ -140,200 +149,12 @@ const Userreport = () => {
     }
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 2));
-        setPage(0);
+        //setPage(0);
     };
-    // alert(country);
-    useEffect(() => {
-        setPage(0);
-        if (current > 1) {
-            alert()
-            setAllUserdata();
-        }
-        setpageCount(Math.ceil(totaluser / limit));
-    }, [limit]);
-
-    const relodreportPrew = async (e) => {
-        // alert()
-        // setAllUserdata();
-        let daterange;
-        if (fromdate !== '') {
-            daterange = [fromdate, fromdate];
-        }
-        if (todate !== '') {
-            daterange = [todate, todate];
-        }
-        if (fromdate !== '' && todate !== '') {
-            daterange = [fromdate, todate];
-        }
-        if (fromdate === '' && todate === '') {
-            daterange = "";
-        }
-        const postBody = {
-            page: current - 1,
-            search: username,
-            range: daterange
-        }
-        // alert(JSON.stringify(postBody)); return;
-        setSpinner(true)
-        await getuserreport(postBody).then(response => {
-            //  alert(response.data.status)
-            if (response.data.status === true) {
-                setSpinner(false);
-                setAllUserdata(response.data.data[0].users);
-                setTotalUser(response.data.data[0].totalUser);
-                //  alert(response.data.status)
-                //  alert(JSON.stringify(response.data.data[0].users))
-            }
-            else {
-                setSpinner(false);
-                toast.error(response.message.data, {
-                    position: "bottom-right",
-                    hideProgressBar: false,
-                    progress: undefined,
-                });
-            }
-        }).catch((error) => {
-            setSpinner(false);
-            console.log(error.message);
-            /*  toast.error(error.message, {
-                      position: "bottom-right",
-                      hideProgressBar: false,
-                      progress: undefined,
-              });*/
-        });
-    }
-    const fetchComments = async (currentPage) => {
-        const res = await fetch(
-            `http://localhost:3004/comments?_page=${currentPage}&_limit=${limit}`
-            // `https://jsonplaceholder.typicode.com/comments?_page=${currentPage}&_limit=${limit}`
-        );
-        const data = await res.json();
-        return data;
-    };
-
-    const handlePageClick = async (data) => {
-        // console.log(data.selected);
-       // alert(data.selected)
-        let currentPage = data.selected + 1;
-
-       // const commentsFormServer = await fetchComments(currentPage);
-       
-        // alert()
-        let daterange;
-        if (fromdate !== '') {
-            daterange = [fromdate, fromdate];
-        }
-        if (todate !== '') {
-            daterange = [todate, todate];
-        }
-        if (fromdate !== '' && todate !== '') {
-            daterange = [fromdate, todate];
-        }
-        if (fromdate === '' && todate === '') {
-            daterange = "";
-        }
-        const postBody = {
-            page: currentPage,
-            search: username,
-            range: daterange
-        }
-        // alert(JSON.stringify(postBody)); return;
-        setSpinner(true)
-        await getuserreport(postBody).then(response => {
-            //  alert(response.data.status)
-            if (response.data.status === true) {
-                setSpinner(false);
-                setAllUserdata(response.data.data[0].users);
-                setTotalUser(response.data.data[0].totalUser);
-                //  alert(response.data.status)
-                //  alert(JSON.stringify(response.data.data[0].users))
-            }
-            else {
-                setSpinner(false);
-                toast.error(response.message.data, {
-                    position: "bottom-right",
-                    hideProgressBar: false,
-                    progress: undefined,
-                });
-            }
-        }).catch((error) => {
-            setSpinner(false);
-            console.log(error.message);
-            /*  toast.error(error.message, {
-                      position: "bottom-right",
-                      hideProgressBar: false,
-                      progress: undefined,
-              });*/
-        });
-        // scroll to the top
-        //window.scrollTo(0, 0)
-    };
-    const relodreportNext = async (e) => {
-        // setAllUserdata();
-        let daterange;
-        if (fromdate !== '') {
-            daterange = [fromdate, fromdate];
-        }
-        if (todate !== '') {
-            daterange = [todate, todate];
-        }
-        if (fromdate !== '' && todate !== '') {
-            daterange = [fromdate, todate];
-        }
-        if (fromdate === '' && todate === '') {
-            daterange = "";
-        }
-        const postBody = {
-            page: current + 1,
-            search: username,
-            range: daterange
-        }
-        // alert(JSON.stringify(postBody)); return;
-        setSpinner(true)
-        await getuserreport(postBody).then(response => {
-            //  alert(response.data.status)
-            if (response.data.status === true) {
-                setSpinner(false);
-                setAllUserdata(response.data.data[0].users);
-                setTotalUser(response.data.data[0].totalUser);
-                //  alert(response.data.status)
-                //  alert(JSON.stringify(response.data.data[0].users))
-            }
-            else {
-                setSpinner(false);
-                toast.error(response.message.data, {
-                    position: "bottom-right",
-                    hideProgressBar: false,
-                    progress: undefined,
-                });
-            }
-        }).catch((error) => {
-            setSpinner(false);
-            console.log(error.message);
-            /*  toast.error(error.message, {
-                      position: "bottom-right",
-                      hideProgressBar: false,
-                      progress: undefined,
-              });*/
-        });
-    }
     const relodreport = async (e) => {
         // alert()
-        let daterange;
-        if (fromdate !== '') {
-            daterange = [fromdate, fromdate];
-        }
-        if (todate !== '') {
-            daterange = [todate, todate];
-        }
-        if (fromdate !== '' && todate !== '') {
-            daterange = [fromdate, todate];
-        }
-        if (fromdate === '' && todate === '') {
-            daterange = "";
-        }
         const postBody = {
-            page: current,
+            page: page,
             search: username,
             range: daterange
         }
@@ -344,6 +165,7 @@ const Userreport = () => {
             if (response.data.status === true) {
                 setSpinner(false);
                 setAllUserdata(response.data.data[0].users);
+                //   alluserdatas.push(response.data.data[0].users);
                 setTotalUser(response.data.data[0].totalUser);
                 //  alert(response.data.status)
                 //  alert(JSON.stringify(response.data.data[0].users))
@@ -367,32 +189,20 @@ const Userreport = () => {
         });
     }
     const onStatusUpdate = async (val) => {
-        //e.preventDefault();
-        let daterange;
-        if (fromdate !== '') {
-            daterange = [fromdate, fromdate];
-        }
-        if (todate !== '') {
-            daterange = [todate, todate];
-        }
-        if (fromdate !== '' && todate !== '') {
-            daterange = [fromdate, todate];
-        }
-        if (fromdate === '' && todate === '') {
-            daterange = "";
-        }
+
         const postBody = {
-            page: current,
+            page: page,
             search: username,
             range: daterange
         }
-        // alert(JSON.stringify(postBody)); return;
+
         setSpinner(true)
         await getuserreport(postBody).then(response => {
 
             if (response.data.status === true) {
                 setSpinner(false);
                 setAllUserdata(response.data.data[0].users);
+                //  alluserdatas.push(response.data.data[0].users);
                 setTotalUser(response.data.data[0].totalUser);
                 //  alert(JSON.stringify(response.data.data[0].users))
             }
@@ -404,6 +214,7 @@ const Userreport = () => {
                     progress: undefined,
                 });
             }
+            // setAllUserdata(alluserdatas[0]);
         }).catch((error) => {
             setSpinner(false);
             console.log(error.message);
@@ -415,34 +226,14 @@ const Userreport = () => {
         });
 
     }
-    //   let listContent;
-    //   let count = 0;
-    for (let i in alluserdata) {
-        alluserdatas.push(alluserdata[i]);
-    }
-    // count = totaluser;
-    //console.log(alluserdata);
-    //alert(totaluser)
-    //alert(spinner)
-    /*  if (spinner) {
-          listContent = <tr><td colSpan='9'><h5>Loading...</h5></td></tr>
-      }
-      else {
-          count = allfundContent?.length;
-          //  alert(count)
-          // listContent = allfundContents.map((funds) => (<Allfundrecord Allfundrecord={funds} />)) 
-          allfundContent && allfundContent?.length > 0 ?
-              (listContent = allfundContent.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((funds) => (<Allfundrecord Allfundrecord={funds} />))) : (listContent = <tr><td colSpan='9'><h5>No record found!</h5></td></tr>)
-  
-      }*/
 
     return (
         <Container>
             <Popup openPopup={openPopup} pageTitle={pageTitle} setOpenPopup={setOpenPopup} width={modalWidth}>
                 {(openPopup) && <Edituserdetails addOrEdit={addOrEdit} recordForEdit={recordForEdit} />}
             </Popup>
-            <Typography variant="h5">User Report<Ptags>(All the field having * are required)</Ptags></Typography>
-            <Typography variant="h6">Search Criteria</Typography>
+            <Typography variant="h5">User Report</Typography>
+            <Typography  style={{ fontSize:'17px' }}>Search Criteria</Typography>
             <Row style={{ width: '975px' }}>
                 <Col >
                     <DemoContainer
@@ -663,8 +454,8 @@ const Userreport = () => {
                                             <td style={{ width: '150px' }}>Edit</td>
                                         </tr>
                                     </thead>
-                                    <tbody>{console.log(alluserdatas)}
-                                        {totaluser > 0 ? (alluserdatas.slice((current - 1) * size, current * size).map((funds) =>
+                                    <tbody>
+                                        {totaluser > 0 ? (alluserdata.map((funds) =>
 
                                             <tr key={funds._id}>
                                                 <td>{funds.name}</td>
@@ -678,20 +469,48 @@ const Userreport = () => {
                                         }
                                     </tbody>
                                 </Table>
-                                {/* {count > 0 ?
+                                {totaluser > 0 ? <div className="pagination">
+                                    <span
+                                        className={page === 1 ? "inactive" : "active"}
+                                        onClick={page > 1 ? () => setPage(prev => prev - 1) : ''}
+                                    >
+                                        ◀️
+                                    </span>
+                                    <span className="rc-pagination-item">
+                                        {page}...{Math.ceil(totaluser / limit)}
+                                    </span>
+                                    {/*[...Array(totaluser / limit)].map((_, index) => {
+                                        return (
+                                            <span
+                                                className={page == index + 1 && "active-page-num"}
+                                                onClick={() => setPage(index + 1)}
+                                            >
+                                                {index + 1}
+                                            </span>
+                                        );
+                                    })*/}
+                                    <span
+                                        className={page === totaluser / limit ? "inactive" : "active"}
+                                        onClick={page < Math.ceil(totaluser / limit) ? () => setPage(prev => prev + 1) : ''}
+                                    >
+                                        ▶️
+                                    </span>
+                                </div>
+                                    : ''}
+                                {/*totaluser > 0 ?
                                     <TablePagination
-                                        rowsPerPageOptions={[5, 10, 25]}
+                                        rowsPerPageOptions={[]}//{[5, 10, 25]}
                                         component="div"
-                                        count={count}
+                                        count={totaluser}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
                                         onRowsPerPageChange={handleChangeRowsPerPage}
                                     />
-                                    : ''} */}
+                            : ''*/}
 
-                                {/* USING PAGENATION 
-                                {totaluser > 0 ?
+                                {/* USING PAGENATION */}
+                                {/*totaluser > 0 ?
                                     <Pagination
                                         className="pagination-data"
                                         showTotal={(total, range) =>
@@ -705,8 +524,8 @@ const Userreport = () => {
                                         itemRender={PrevNextArrow}
                                         onShowSizeChange={PerPageChange}
                                     />
-                                    : ''}*/}
-                                {totaluser > 0 ?
+                                    : ''*/}
+                                {/*totaluser > 0 ?
                                     <ReactPaginate
                                         previousLabel={"previous"}
                                         nextLabel={"next"}
@@ -726,14 +545,15 @@ const Userreport = () => {
                                         breakLinkClassName={"page-link"}
                                         activeClassName={"active"}
                                     />
-                                    : ''}
+                                    : ''*/}
+
                             </div>
                         </div>
                     </div>
                 </div>
                 )
             }
-        </Container>)
+        </Container >)
 }
 
 export default Userreport;

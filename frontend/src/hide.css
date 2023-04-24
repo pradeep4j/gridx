@@ -154,4 +154,22 @@
       border-color: #eceff5;
   }
   
-
+  .paginationBttns {
+    width: 100%;
+    display: flex;
+    list-style: none;
+    justify-content: center;
+    margin: 2% 0;
+  }
+  .paginationBttns a {
+    border: 2px solid black;
+    padding: 5px 15px;
+    border-radius: 50px;
+    margin: 0 5px;
+  }
+  .pagination span {
+    margin: 10px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+}
+  

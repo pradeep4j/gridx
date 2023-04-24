@@ -1,5 +1,5 @@
 import axios from 'axios';
-const URL = 'http://localhost:8000'; 
+const URL = 'http://localhost:5000'; 
 export const getUrl = () => {
         return URL;
 }
@@ -17,6 +17,11 @@ export const removeProduct = () => {
 }
 export const getAPIUrl = () => {
         let URL = `${getUrl()}/api/user`;
+        return URL;
+
+}
+export const getAdminUrl = () => {
+        let URL = `${getUrl()}/admin`;
         return URL;
 
 }
