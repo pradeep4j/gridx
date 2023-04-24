@@ -36,14 +36,15 @@ export const addnews = async(data) => {
     }
     return await axios.post(`${URL}/addnews`,data/*,config*/);
 }
-export const allUsers = async(id) => {
+export const getuserreport = async(data) => {
     const config = {
         headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
         }
     }
-    return await axios.get(`${URL}/allUsers/${id}`,config);
+    //alert(JSON.stringify(data)); return;
+    return await axios.post(`${URL}/usersList`,data,config);
 }
 export const getnewsbyId = async(id) => {
    /* const config = {
@@ -104,27 +105,18 @@ export const pinactivation = async(data) => {
       };
     return await axios.post(`${URL}/pinsystem`,data,config); //adding token header with request
 }
-export const editUserFromAdminById = async(data,id) => {  //all users except logged in user
+export const editUserFromAdminById = async(data) => {  //all users except logged in user
     const config = {
         headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
         }
     }
-    return await http.put(`${URL}/userEditFromAdminById/${id}`,data,config);
+    return await axios.post(`${URL}/updateUser`,data,config);
 }
 export const deleteNews = async(id) => {
     return await axios.delete(`${URL}/deleteNews/${id}`);
 }
 
-export const getuserreport = async(data) => {
 
-    const config = {
-        headers: {
-            "Content-Type":"application/json",
-            Authorization : `Bearer ${getToken()}`
-        }
-    }
-    return await http.get(`${URL}/getuserreport`,data,config); 
-}  
 

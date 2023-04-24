@@ -5,7 +5,7 @@ import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Table, Row, Col } from 'react-bootstrap';
-import { Typography, FormGroup, Select, TextField, FormControl, MenuItem, styled, Button, TablePagination, FormLabel, Radio, RadioGroup, FormControlLabel } from '@mui/material';
+import { Typography, FormGroup, Select, TextField, FormControl, MenuItem, styled, Button, TablePagination, FormLabel, Radio, RadioGroup, FormControlLabel,InputAdornment} from '@mui/material';
 import Loading from "../../components/Loading";
 import { toast } from 'react-toastify';
 import { pinactivation } from '../../routes/api';
@@ -40,22 +40,23 @@ const Pinactivation = () => {
     const onPinactivation = async (val) => {
         const postBody = {
             gdxamount: val.gdxamount,
-            username: val.username,
+            username: 'GDX'+val.username,
             wallettype: wallettype,
             pintype: pin
         }
-        //alert(JSON.stringify(postBody)); return;
+      //  alert(JSON.stringify(postBody)); return;
         setSpinner(true);
         await pinactivation(postBody).then(response => {
+           // alert(response.data.status)
             if (response.data.status === true ) {
                 setSpinner(false);
-                toast.success('Selected pin activation is successfull!', {
+                toast.success('Selected user id activation is successfull!', {
                     position: "bottom-right",
                     hideProgressBar: false,
                     progress: undefined,
                 });
             }
-            else if(response.data.status === false){
+            else {
                 setSpinner(false);
                 toast.error(response.data.message, {
                     position: "bottom-right",
@@ -89,11 +90,7 @@ const Pinactivation = () => {
                     onChange={(e) => setWalletType(e.target.value)}
                         /* error={formik.touched.gender && Boolean(formik.errors.gender)} 
                                 helperText={formik.touched.gender && formik.errors.gender*}*/>
-                    <RadioFonts
-                        value="gdx"
-                        control={<Radio />}
-                        label="GDX Wallet"
-                    />
+                    
                     <RadioFonts
                         value="ext"
                         control={<Radio />}
@@ -128,7 +125,9 @@ const Pinactivation = () => {
                                 name='username'
                                 // label="User Id"
                                 onChange={formik.handleChange}
-                                /* inputProps={{ maxLength: 50 }} */
+                                InputProps={{
+                                    startAdornment: <InputAdornment position="start" ><Typography variant="headline" component="h6" style={{ fontWeight:'bold' }}>GDX</Typography></InputAdornment>,
+                                }}
                                 error={formik.touched.username && Boolean(formik.errors.username)}
                                 helperText={formik.touched.username && formik.errors.username}
                             />

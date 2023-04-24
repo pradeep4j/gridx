@@ -11,11 +11,12 @@ import Fundrequest from './pages/Fund Request/Fundrequest';
 import FundApprovereject from './pages/Fund Request/FundApprovereject';
 import Pinactivation from './pages/Fund Request/Pinactivation';
 import Userreport from './pages/User Management/Userreport';
+import Edituserdetails from './pages/User Management/Edituserdetails';
 import Dashboard from './components/Dashboard';
 import PrivateRoute from './routes/PrivateRoute';
 import PublicRoute from './routes/PublicRoute';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-// React Notification 
+// React Notification  
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthContextProvider } from './store/AuthContext';
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="/withdrawlrequest" element={<PrivateRoute><Withdrawlrequest /></PrivateRoute>} /> 
           <Route path="/fundrequest" element={<PrivateRoute><Fundrequest /></PrivateRoute>} />
           <Route path="/editfund/:id" element={<PrivateRoute><FundApprovereject /></PrivateRoute>} /> 
+          <Route path="/edituser/:id" element={<PrivateRoute><Edituserdetails /></PrivateRoute>} /> 
         </Routes>
       </AuthContextProvider>
       <ToastContainer

@@ -9,8 +9,6 @@ import { useForm, Form } from '../../components/useForm';
 const FundApprovereject = ({ addOrEdit,recordForEdit }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    //const [openPopup, setOpenPopup] = useState(true);
-    // alert(JSON.stringify(recordForEdit))
     const schema = Yup.object({
         type: Yup.string('')
             .required('Status is required!'),
@@ -61,7 +59,8 @@ const FundApprovereject = ({ addOrEdit,recordForEdit }) => {
         // alert(JSON.stringify(postBody)); return;
         // api call
         await updatestatuswithremark(postBody).then(response => {
-            if (response.status === 200) {
+            //alert(response.data.status); return;
+            if (response.data.status === true) {
                 
                 toast.success('GridX Fund Status is updated Successfully!', {
                     position: "bottom-right",
@@ -70,7 +69,7 @@ const FundApprovereject = ({ addOrEdit,recordForEdit }) => {
                 });
             }
             else {
-                toast.error(response.data, {
+                toast.error(response.data.message, {
                     position: "bottom-right",
                     hideProgressBar: false,
                     progress: undefined,
@@ -88,10 +87,10 @@ const FundApprovereject = ({ addOrEdit,recordForEdit }) => {
     }
 
     return (
-<Form onClick={formik.handleSubmit}>
+<form onSubmit={formik.handleSubmit}>
         <Container>
             <Typography variant="h5">
-                <Ptags>Update GridX Fund Status</Ptags><p style={{ fontSize: '12px' }}>(All the field having * are required)</p></Typography>
+                <Ptags>Update GridX Fund Status</Ptags><p style={{ fontSize: '12px' }}>(All the field are required)</p></Typography>
             <FormControl>
                 <TextField value={formik.values.userId}
                     id='userId'
@@ -145,7 +144,7 @@ const FundApprovereject = ({ addOrEdit,recordForEdit }) => {
                 <TextField value={formik.values.remarks}
                     label="Remarks"
                     name="remarks"
-                    onChange={formik.handleChange} required
+                    onChange={formik.handleChange} 
                     multiline
                     rows={4}
                     error={formik.touched.remarks && Boolean(formik.errors.remarks)}
@@ -155,7 +154,7 @@ const FundApprovereject = ({ addOrEdit,recordForEdit }) => {
                 <Buttons variant="contained" type="submit" >Update</Buttons>
             </FormControl>
         </Container>
-        </Form>
+        </form>
     )
 }
 

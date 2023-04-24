@@ -1092,6 +1092,9 @@ config.verifyOtp = async (user,type, code, res,value, add_min = 10) => {
         config.response(200, 'OTP Expired Please Resend', {}, res);
     }
 }
-
+config.checkUserExists = async (type,value,id) => {
+    const checkUser = await Users.findOne({[type]:value,_id:{$ne:id}});
+    return checkUser;
+}
 
 module.exports = config;

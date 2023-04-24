@@ -46,6 +46,20 @@ router.get('/logout', async (request, response) => {
         response.status(404).json({ message: error.message })
     }
 });
+router.post('/updateUser', 
+body('id').not().isEmpty().withMessage("The id field is required!"),
+(req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        config.response(400, 'Validation Error!', { errors: errors.array() }, res);
+    }
+    else {
+        admincon.updateUser(req, res, next);
+    }
+});
+router.post('/usersList', (req, res, next) => {
+    admincon.usersList(req, res, next);
+});
 router.post('/', (req, res) => {
     config.response(200, 'dashboard', {}, res);
 

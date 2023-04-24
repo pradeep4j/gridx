@@ -5,7 +5,7 @@ import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup'; // Yup is a JavaScript object schema validator.
 import { useFormik } from 'formik'; //formik is third party React form library. It provides basic form programming and validation
-import { updatestatuswithremark } from '../../routes/api';
+import { editUserFromAdminById } from '../../routes/api';
 import { useForm, Form } from '../../components/useForm';
 import { Table, Row, Col } from 'react-bootstrap';
 const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
@@ -17,15 +17,13 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
         name: Yup.string('')
             .required('Name is required!'),
         username: Yup.string('')
-            .required('Name is required!')
-            .min(8, 'The Remarks must be minimum at least 8 characters.'),
+            .required('Name is required!'),
+           // .min(8, 'The Remarks must be minimum at least 8 characters.'),
         email: Yup.string('')
             .email('Enter a valid email')
             .required('Email is required'),
         mobile: Yup.number('')
-            .required('Mobile is required!')
-            .min(10, 'The Mobile should be minimum at least 10 numbers.')
-            .max(10, 'The Mobile should be maximum at least 10 numbers.'),
+            .required('Mobile is required!'),
         address: Yup.string('')
             .required('Address is required!')
             .min(6, 'The Address should be minimum at least 6 numbers.'),
@@ -42,23 +40,18 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
         email: '',
         password: ''
     }
-    /* const savedValues = {
-         userId: '',//recordForEdit.userId,
-         gdxamount: '',//recordForEdit.gdxamount,
-         hash: '',//recordForEdit.hash,
-         type: '',
-         remarks: ''
-          name: '',
-        username: '',
-        mobile: '',
-        address:'',
-        email: '',
-        password: ''
-     }*/
+     const savedValues = {
+        name: recordForEdit.name,
+        username: recordForEdit.username,
+        mobile: recordForEdit.mobile,
+        address:recordForEdit.address,
+        email: recordForEdit.email,
+        password: 'April22#3'
+     }
     //for inline validations via Yup and formik
     const formik = useFormik({
-        initialValues: /*(savedValues || */initialValues,//),
-        // enableReinitialize: true,
+        initialValues: (savedValues || initialValues),
+        enableReinitialize: true,
         validationSchema: schema,
         onSubmit: (values, { resetForm }) => {
             onStatusUpdate(values, resetForm);
@@ -73,26 +66,31 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
         values,
         resetForm
     } = useForm(initialValues, true);
+    
     const onStatusUpdate = async (val) => {
-
         const postBody = {
-            requestId: recordForEdit._id,
-            type: val.type,
-            remarks: val.remarks
+            id:recordForEdit._id,
+            username:val.username,
+            name:val.name,
+            address:val.address,
+            mobile:String(val.mobile),
+            email:val.email,
+            password:val.password
         }
         // alert(JSON.stringify(postBody)); return;
         // api call
-        await updatestatuswithremark(postBody).then(response => {
-            if (response.status === 200) {
+        await editUserFromAdminById(postBody).then(response => {
+           // alert(response.data.message)
+            if (response.data.status === true) {
 
-                toast.success('GridX Fund Status is updated Successfully!', {
+                toast.success('GridX user details is updated Successfully!', {
                     position: "bottom-right",
                     hideProgressBar: false,
                     progress: undefined,
                 });
             }
             else {
-                toast.error(response.data, {
+                toast.error(response.data.message, {
                     position: "bottom-right",
                     hideProgressBar: false,
                     progress: undefined,
@@ -110,10 +108,10 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
     }
 
     return (
-        <Form onClick={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit}>
             <Container>
                 <Typography variant="h5">
-                    <Ptags>Update GridX User Details</Ptags><p style={{ fontSize: '12px' }}>(All the field having * are required)</p></Typography>
+                    <Ptags>Update GridX User Details</Ptags><p style={{ fontSize: '12px' }}>(All the field are required)</p></Typography>
                 <Row style={{ width: '530px' }}>
                     <Col>
                         <FormControl>
@@ -175,9 +173,9 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
                 </Row>
                 <FormControl>
                     <TextField value={formik.values.address}
-                        label="Address"
+                        label="GDX Address"
                         name="address"     ///it  will be hash value = token
-                        onChange={formik.handleChange} required
+                        onChange={formik.handleChange} 
                         error={formik.touched.address && Boolean(formik.errors.address)}
                         helperText={formik.touched.address && formik.errors.address}
                         style={{ width: '490px' }}
@@ -192,6 +190,7 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
                                 name='password'
                                 label="Password"
                                 onChange={formik.handleChange}
+                                type="password"
                                 error={formik.touched.password && Boolean(formik.errors.password)}
                                 helperText={formik.touched.password && formik.errors.password}
                             />
@@ -202,7 +201,7 @@ const FundApprovereject = ({ addOrEdit, recordForEdit }) => {
                     <Buttons variant="contained" type="submit" >Update</Buttons>
                 </FormControl>
             </Container>
-        </Form>
+        </form>
     )
 }
 

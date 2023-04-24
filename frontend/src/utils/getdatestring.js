@@ -3,7 +3,7 @@
 const getDateString = (date, showTime = true) => {
 	const options = {
 		year: 'numeric',
-		month: 'short',
+		month: 'numeric',
 		day: 'numeric',
 	};
 	const timeStr = new Date(date).toLocaleTimeString('en', {
@@ -14,7 +14,7 @@ const getDateString = (date, showTime = true) => {
 
 	let result = '';
 	if (showTime) result += `${timeStr} `;
-	return result + new Date(date).toLocaleDateString('en', options);
+	return  new Date(date).toLocaleDateString('en', options)+'  '+result;
 };
 
 export default getDateString;

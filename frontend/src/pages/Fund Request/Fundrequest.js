@@ -67,6 +67,39 @@ const Fundrequest = () => {
         setSpinner(true)
         await getallfundrequest(postBody).then(response => {
 
+            if (response.data.status === true) {
+                setSpinner(false);
+                setallfundContent(response.data.data);
+            }
+            else {
+                setSpinner(false);
+                toast.error(response.message.data, {
+                    position: "bottom-right",
+                    hideProgressBar: false,
+                    progress: undefined,
+                });
+            }
+        }).catch((error) => {
+            setSpinner(false);
+            console.log(error.message);
+            /*  toast.error(error.message, {
+                      position: "bottom-right",
+                      hideProgressBar: false,
+                      progress: undefined,
+              });*/
+        });
+    }
+    const fundlist = async () => {
+        const postBody = {
+            fromdate: fromdate,
+            todate: todate,
+            userId: userId,
+            status: status
+        }
+        // alert(JSON.stringify(postBody));
+        setSpinner(true)
+        await getallfundrequest(postBody).then(response => {
+
             if (response.status === 200 || response.status === true) {
                 setSpinner(false);
                 setallfundContent(response.data.data);
@@ -90,6 +123,7 @@ const Fundrequest = () => {
         });
     }
     useEffect(() => {
+        fundlist();
         setPage(0);
     }, [dataPage]);
     let allfundContents = [];
@@ -203,11 +237,7 @@ const Fundrequest = () => {
             <FormControl>
                 <Buttons variant="contained" id="submitting" type="submit" onClick={(e) => { onSubmit(e) }}>Search</Buttons>
             </FormControl>
-            <Row className='align-items-center'>
-                <Col>
-                    <center><h4><u>Fund Requests ({`${count || 0}`})</u></h4></center>
-                </Col>
-            </Row>
+
             {spinner ? (
                 <Loading />
             ) :
@@ -215,6 +245,11 @@ const Fundrequest = () => {
                     <div className='row'>
                         <div className='col-md-11'>
                             <div className='card'>
+                                <Row className='align-items-center'>
+                                    <Col>
+                                        <h6><u>Fund Requests ({`${count || 0}`})</u></h6>
+                                    </Col>
+                                </Row>
                                 <Table scope="col"
                                     striped
                                     bordered
@@ -249,7 +284,7 @@ const Fundrequest = () => {
                                                     } >{(funds.hash).slice(0, 30)}</a></td>
                                                     <td >{funds.remarks}</td>
                                                     <td>{funds.status === 1 ? (<Button variant="contained" style={{ backgroundColor: 'green', pointerEvents: 'none' }} >Approved</Button>) : funds.status === 2 ? (<Button variant="contained" style={{ backgroundColor: 'red', pointerEvents: 'none' }} >Rejected</Button>) : <Button variant="contained" /*style={{ backgroundColor: 'green' }}*/ onClick={() => openInPopupForUpdate(funds)}>Approve/Reject</Button>}</td>
-                                                </tr>)) : (listContent = <tr><td colSpan='9'><h5>No record found!</h5></td></tr>)
+                                                </tr>)) : (<tr><td colSpan='9'><h5>No record found!</h5></td></tr>)
                                         }
                                     </tbody>
                                 </Table>
