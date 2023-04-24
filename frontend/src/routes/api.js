@@ -1,7 +1,8 @@
 import axios from 'axios';
 import {http,getToken} from '../utils/localStorage'
 //alert(`${getAdminUrl}/addoffer`)
-const URL = 'http://localhost:5000/admin'; 
+//const URL = 'http://localhost:5000/admin'; 
+const URL = 'http://gridxecosystem.in:5000/admin'; 
 const IMAGE_URL = 'http://localhost:3000/gridx/frontend/assets'; 
 export const getImageUrl = () => {
    // let URL = `${getUrl()}/api/user`;
@@ -35,7 +36,7 @@ export const addnews = async(data) => {
             Authorization : `Bearer ${getToken()}`
         }
     }
-    return await axios.post(`${URL}/addnews`,data/*,config*/);
+    return await axios.post(`${URL}/addnews`,data,config);
 }
 export const getuserreport = async(data) => {
     const config = {
@@ -54,7 +55,7 @@ export const getnewsbyId = async(id) => {
             Authorization : `Bearer ${getToken()}`
         }
     }*/
-    return await axios.post(`${URL}/getnewsbyId/${id}`/*,config*/);
+    return await axios.post(`${URL}/slider/${id}`/*,config*/);
 }
 export const allnews = async(id) => {  
     /*const config = {

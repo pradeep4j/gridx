@@ -1,6 +1,7 @@
 import axios from "axios";
 import {http,getToken} from '../utils/localStorage';
-const URL = 'http://localhost:5000/admin'; 
+//const URL = 'http://localhost:5000/admin'; 
+const URL = 'http://gridxecosystem.in:5000/admin'; 
 const getData = async (props) => {
 
 //   const token = getCookie('gridx-client');
