@@ -14,13 +14,16 @@ const Register = () => {
         name: '',
         email: '',
         password: '',
-        repassword: ''
+        repassword: '',
+        mobile: ''
     };
 
     //for inline validations via Yup and formik
     const schema = Yup.object({
         name: Yup.string('')
             .required('Name is required'),
+        username: Yup.string('')
+            .required('Username is required'),
         email: Yup.string('')
             .email('Enter a valid email')
             .required('Email is required'),
@@ -30,7 +33,10 @@ const Register = () => {
         repassword: Yup.string('')
             .min(8, 'The password must be at least 8 characters.')
             .required('Re Password is required')
-            .oneOf([Yup.ref('password'), null], 'Passwords must match')
+            .oneOf([Yup.ref('password'), null], 'Passwords must match'),
+        mobile: Yup.string()
+            .required("Mobile is required!")
+            .min(10, "Mobile should have minimum 10 digits!"),
     });
 
     const formik = useFormik({
@@ -44,13 +50,15 @@ const Register = () => {
     const onUserRegister = async (val) => {
         const postBody = {
             name: val.name,
+            username:val.username,
             email: val.email,
-            password: val.password
+            password: val.password,
+            mobile: val.mobile
         }
 
-        await axios.post('http://localhost:8000/api/register', postBody).then(response => {
+        await axios.post('http://localhost:5000/admin/register', postBody).then(response => {
             if (response.status === 201) {
-                navigate('/login');
+                navigate('/9910c765099bd20851b270fc9d759253/login');
                 toast.success('Customer is created in Successfully!', {
                     position: "bottom-right",
                     hideProgressBar: false,
@@ -100,6 +108,19 @@ const Register = () => {
 
             </FormControl>
             <FormControl>
+                <TextField value={formik.values.username}
+                    required='required'
+                    id='username'
+                    name='username'
+                    label="Username"
+                    onChange={formik.handleChange}
+                    inputProps={{ maxLength: 50 }}
+                    error={formik.touched.username && Boolean(formik.errors.username)}
+                    helperText={formik.touched.username && formik.errors.username}
+                />
+
+            </FormControl>
+            <FormControl>
                 <TextField value={formik.values.email}
                     required='required'
                     id='email'
@@ -135,7 +156,18 @@ const Register = () => {
                     type="password"
                 />
             </FormControl>
-
+            <FormControl>
+                <TextField value={formik.values.phone}
+                    required
+                    label="Mobile"
+                    name="mobile"
+                    onChange={formik.handleChange}
+                    type="number"
+                    onInput={(e) => { e.target.value = Math.max(0, parseInt(e.target.value)).toString().slice(0, 10) }}
+                    error={formik.touched.mobile && Boolean(formik.errors.mobile)}
+                    helperText={formik.touched.mobile && formik.errors.mobile}
+                />
+            </FormControl>
             <FormControl>
                 <Button variant="contained" component="label" type="submit" onClick={(e) => formik.handleSubmit()}>Add User</Button>
             </FormControl>

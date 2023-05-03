@@ -47,7 +47,7 @@ const Join = () => {
         await axios.post('http://localhost:8000/api/join', formData, config).then(response => {
             //  alert(response.status)
             if (response.status === 201 && (response.data !== 401 && response.data !== 402 && response.data !== 403)) {
-                navigate('/dashboard');
+                navigate('/9910c765099bd20851b270fc9d759253/dashboard');
 
                 toast.success(response.data, {
                     position: "bottom-right",

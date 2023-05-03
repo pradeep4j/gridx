@@ -6,7 +6,7 @@ import * as Yup from 'yup'; // Yup is a JavaScript object schema validator.
 import { useFormik } from 'formik'; //formik is third party React form library. It provides basic form programming and validation
 import { login, getImageUrl } from '../routes/api';
 import AuthContext from "../store/AuthContext";
-import companyLogo from './imgpsh_fullsize_anim.png';
+import companyLogo from './logo_dark.jpg';
 const Login = () => {
     const navigate = useNavigate();
     const authCtx = useContext(AuthContext);
@@ -18,13 +18,13 @@ const Login = () => {
         password: Yup.string('')
             .min(8, 'The password must be at least 8 characters.')
             .required('Password is required')
-            //.matches(/^(?=.*\d)(?=.*[@#\-_$%^&+=ยง!\?])(?=.*[a-z])(?=.*[A-Z])[0-9A-Za-z@#\-_$%^&+=ยง!\?]+$/,"Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number and a special characters!"),
+            .matches(/^(?=.*\d)(?=.*[@#\-_$%^&+=ยง!\?])(?=.*[a-z])(?=.*[A-Z])[0-9A-Za-z@#\-_$%^&+=ยง!\?]+$/,"Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number and a special characters!"),
     });
     //for inline validations via Yup and formik
     const formik = useFormik({
         initialValues: {
-            username: '',
-            password: '',
+            username: 'GDXsadmin',
+            password: 'April@52684',
         },
         validationSchema: schema,
         onSubmit: (values, { resetForm }) => {
@@ -40,7 +40,7 @@ const Login = () => {
         // api call
         await login(postBody).then(response => {
             if (response.status === 201) {
-                localStorage.setItem('token', JSON.stringify(response.data.access_token));
+                localStorage.setItem('token', JSON.stringify(response.data.token));
                 localStorage.setItem('user', JSON.stringify(response.data));
                 toast.success('GRIDX Admin is Logged in Successfully!', {
                     position: "bottom-right",
@@ -48,7 +48,7 @@ const Login = () => {
                     progress: undefined,
                 });
                 loginUser();
-                navigate('/dashboard');
+                navigate('/9910c765099bd20851b270fc9d759253/dashboard');
             }
             else if (response.data === 404) {
                 toast.error('User Not Found!.', {
@@ -85,7 +85,7 @@ const Login = () => {
         <Container>
             <Typography variant="h5">
                 <div>
-                    <img src={companyLogo} width="20%" alt="logo" />
+                    <img src={companyLogo} width="60%" alt="logo" />
                 </div>
                 </Typography>
                 <Typography variant="h5">

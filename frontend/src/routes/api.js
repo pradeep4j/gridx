@@ -1,13 +1,13 @@
 import axios from 'axios';
-import {http,getToken} from '../utils/localStorage'
+import {getToken} from '../utils/localStorage'
 //alert(`${getAdminUrl}/addoffer`)
-//const URL = 'http://localhost:5000/admin'; 
-const URL = 'http://gridxecosystem.in:5000/admin'; 
-const IMAGE_URL = 'http://localhost:3000/gridx/frontend/assets'; 
-export const getImageUrl = () => {
-   // let URL = `${getUrl()}/api/user`;
-    return IMAGE_URL;
-}
+// const URL = 'http://localhost:5000/admin'; 
+const URL = 'https://gridxecosystem.in:5000/admin'; 
+// const IMAGE_URL = 'http://localhost:3000/gridx/frontend/assets'; 
+// export const getImageUrl = () => {
+//    // let URL = `${getUrl()}/api/user`;
+//     return IMAGE_URL;
+// }
 export const getUrl = () => {
     return URL;
 }
@@ -18,15 +18,21 @@ export const login = async(data) => {
    return await axios.post(`${URL}/login`,data);
 }
 export const logout = async() => {
-    return await axios.get(`${URL}/logout`);
+    const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }
+    return await axios.get(`${URL}/logout`,config);
 }
 export const addoffer = async(data) => {
-    const config = {
+  //  const config = {
        /* headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
         }*/
-    }
+  //  }
     return await axios.post(`${URL}/addoffer`,data/*,config*/);
 }
 export const addnews = async(data) => {
@@ -48,8 +54,18 @@ export const getuserreport = async(data) => {
     //alert(JSON.stringify(data)); return;
     return await axios.post(`${URL}/usersList`,data,config);
 }
+export const adminactivationreport = async(data) => {
+    const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }
+    //alert(JSON.stringify(data)); return;
+    return await axios.post(`${URL}/usersList`,data,config);
+}
 export const getnewsbyId = async(id) => {
-   /* const config = {
+   /* const config = { 
         headers: {
             "Content-Type":"application/json",
             Authorization : `Bearer ${getToken()}`
@@ -64,7 +80,7 @@ export const allnews = async(id) => {
             Authorization : `Bearer ${getToken()}`
         }
     }*/
-    return await http.get(`${URL}/allnews/${id}`/*,config*/);
+    return await axios.get(`${URL}/allnews/${id}`/*,config*/);
 }
 export const getallfundrequest = async(data) => {  
     const config = {
@@ -107,6 +123,15 @@ export const pinactivation = async(data) => {
       };
     return await axios.post(`${URL}/pinsystem`,data,config); //adding token header with request
 }
+export const useractivationreport = async(data) => {  //all users except logged in user
+    const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }
+    return await axios.post(`${URL}/updateUser`,data,config);
+}
 export const editUserFromAdminById = async(data) => {  //all users except logged in user
     const config = {
         headers: {
@@ -116,8 +141,24 @@ export const editUserFromAdminById = async(data) => {  //all users except logged
     }
     return await axios.post(`${URL}/updateUser`,data,config);
 }
-export const deleteNews = async(id) => {
-    return await axios.delete(`${URL}/deleteNews/${id}`);
+export const savegdxprice = async(data) => {
+    const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }
+    //alert(`${URL}/updateSetting`)
+    return await axios.post(`${URL}/updateSetting`,data,config);
+}
+export const getgdxrate = async(data) => {
+    const config = {
+        headers: {
+            "Content-Type":"application/json",
+            Authorization : `Bearer ${getToken()}`
+        }
+    }
+    return await axios.post(`${URL}/getSetting`,data,config);
 }
 
 

@@ -4,8 +4,51 @@ const BuyToken = require("../models/BuyToken");
 const PinSystem = require("../models/PinSystem");
 const WalletRequest = require("../models/WalletRequest");
 const IncomHistory = require("../models/IncomHistory");
+const GeneralSetting = require("../models/GeneralSetting");
 const adminController = {};
+adminController.updateSetting = async (req, res, next) => {
+    try {
+        const { type, value } = req.body;
+        const generalSettings = await GeneralSetting.find({});
+        if (generalSettings.length == 0) {
+            var generalSettingSave = new GeneralSetting({
+                [type]: value,
+            });
+            generalSettingSave.save();
+            return config.response(200, 'GDX rate is updated Successfully!', [], res);
+        } else {
+            GeneralSetting.findOneAndUpdate({ _id: generalSettings[0]._id }, { [type]: value, updated_at: new Date() }, {
+                returnOriginal: false
+            }).exec(async (err, response) => {
+                if (err) {
+                    return config.response(201, 'Server Error!', [], res);
+                } else {
+                    return config.response(200, 'GDX rate is updated Successfully!!', [], res);
+                }
+            })
+        }
+    } catch (error) {
+        next(error);
+    }
+}
 
+adminController.getSetting = async (req, res, next) => {
+    try {  
+        const generalSettings = await GeneralSetting.find({});
+        if (generalSettings.length == 0) {
+            return config.response(201, 'No Any Record Found!!', [], res);
+        } else {
+            if (req?.body?.type != undefined && req?.body?.type != "") {
+                record = generalSettings[0][req?.body?.type];
+                return config.response(200, 'Record Found Successfully!!', { [req?.body?.type]: record }, res);
+            } else {
+                return config.response(200, 'Record Found Successfully!!', generalSettings, res);
+            }
+        }
+    } catch (error) {
+        next(error);
+    }
+}
 adminController.PinSystem = async (req, res) => {
     try {
         const transaction_id = config.guid();
@@ -160,10 +203,14 @@ adminController.usersList = async (req, res, next) => {
         //     query = {...query,name:req?.body?.name}
         // }
         usernameSearch = req.body.search.trim();
-        username = usernameSearch.slice(0,3);
-        usernameSearch = (username != 'GDX') ? 'GDX'+usernameSearch : usernameSearch;
-        if(req?.body?.search != undefined && req?.body?.search != ''){
-            query = {...query, $or: [ { name: req?.body?.search}, { email: req?.body?.search},{ mobile: req?.body?.search},{ username: usernameSearch},{ address: req?.body?.search} ] }
+        username = usernameSearch.slice(0, 3);
+        usernameSearch = (username != 'GDX') ? 'GDX' + usernameSearch : usernameSearch;
+        if (req?.body?.search != undefined && req?.body?.search != '') {
+            if (isNaN(parseInt(req?.body?.search)) === false) {
+                query = { ...query, $or: [{ mobile: req?.body?.search }, { username: usernameSearch }] }
+            } else {
+                query = { ...query, $or: [{ name: req?.body?.search }, { email: req?.body?.search }, { username: usernameSearch }, { address: req?.body?.search }] }
+            }
         }
         // if(req?.body?.email != undefined && req?.body?.email != ''){
         //     query = {...query,email:req?.body?.email}
@@ -174,24 +221,27 @@ adminController.usersList = async (req, res, next) => {
         // if(req?.body?.address != undefined && req?.body?.address != ''){
         //     query = {...query,address:req?.body?.address}
         // }
-        if(req?.body?.range != undefined && req?.body?.range != ''){
-            query = {...query,created_at: {
+        if (req?.body?.range != undefined && req?.body?.range != '') {
+            query = {
+                ...query, created_at: {
                     $gte: new Date(new Date(req?.body?.range[0]).setHours(00, 00, 00)),
                     $lt: new Date(new Date(req?.body?.range[1]).setHours(23, 59, 59))
                 }
             }
         }
-        let countData = await Users.find({...query}).count();
-        if(req?.body?.page != undefined){
-            skip = (req?.body?.page-1)*10;
-            list = await Users.find({...query}).sort({created_at:-1}).skip(skip).limit(10);
-        }else{
-            list = await Users.find({...query}).sort({created_at:-1});
+
+        let countData = await Users.find({ ...query }).count();
+        if (req?.body?.page != undefined) {
+            skip = (req?.body?.page - 1) * 10;
+            list = await Users.find({ ...query }).sort({ created_at: -1 }).skip(skip).limit(10);
+        } else {
+            list = await Users.find({ ...query }).sort({ created_at: -1 });
         }
-        if(list.length > 0){
-            config.response(200, 'Users Fetched Successfully!', [{users:list,totalUser:countData}], res);
-        }else{
-            config.response(200, 'No Data Found!', {}, res);
+        // console.log(list)
+        if (list.length > 0) {
+            config.response(200, 'Users Fetched Successfully!', [{ users: list, totalUser: countData }], res);
+        } else {
+            config.response(201, 'No Data Found!', {}, res);
         }
     } catch (error) {
         next(error);
@@ -286,6 +336,7 @@ adminController.approveRejectWalletRequest = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+    
     // const walletrequest = await WalletRequest.findOne({_id:req.body.id});
     // if(req.body.type==1)
     // {

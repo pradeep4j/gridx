@@ -3,7 +3,6 @@ import { AppBar, Toolbar, Typography, Box, List, Divider, ListItem, ListItemButt
 import { styled, useTheme } from '@mui/material/styles';
 import { makeStyles } from "@material-ui/core/styles";
 import Drawer from '@mui/material/Drawer';
-import CssBaseline from '@mui/material/CssBaseline';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -41,7 +40,7 @@ const Navbar = () => {
     const [name, setName] = useState('');
     const [userId, setUserid] = useState('');
     const [username, setUsername] = useState('');
-    const drawerWidth = 260;
+    const drawerWidth = 310;
 
     const useTreeItemStyles = makeStyles(theme => ({
         content: {
@@ -105,23 +104,6 @@ const Navbar = () => {
         justifyContent: 'flex-end',
     }));
 
-    const itemsList = [
-        {
-            text: "Dashboard",
-            icon: <HomeIcon />,
-            onClick: (e) => onDashboard(e)
-        },
-        // {
-        //     text: "Tree",
-        //     icon: <GroupAddIcon />,
-        //     onClick: (e) => onTree(e)
-        // },
-        {
-            text: "Logout",
-            icon: <LogoutIcon />,
-            onClick: (e) => onLogout(e)
-        }
-    ];
     ///side bar drawer code start
     const itemsListNotLoggedIn = [
         {
@@ -176,7 +158,45 @@ const Navbar = () => {
         }
 
     ];
-
+    const handlechange = async (values) => {
+        /*   if(values === 'Master Management3'){
+               alert(values)
+               navigate("/9910c765099bd20851b270fc9d759253/Addnews");
+           }*/
+          // alert(values)
+        switch (values) {
+            case 'Master Management2':
+                navigate("/9910c765099bd20851b270fc9d759253/Addoffer");
+                break;
+            case 'Master Management3':
+                navigate("/9910c765099bd20851b270fc9d759253/Addnews");
+                break;
+            case 'Master Management4':
+                navigate("/9910c765099bd20851b270fc9d759253/Addslider");
+                break;
+            case 'Master Management9':
+                navigate("/9910c765099bd20851b270fc9d759253/Priceinsert");
+                break;
+            case 'Fund Request2':
+                navigate("/9910c765099bd20851b270fc9d759253/Fundrequest");
+                break;
+            case 'Fund Request3':
+                navigate("/9910c765099bd20851b270fc9d759253/Pinactivation");
+                break;
+            case 'Fund Request4':
+                navigate("/9910c765099bd20851b270fc9d759253/adminactivatioreport");
+                break;
+            case 'User Management3':
+                navigate("/9910c765099bd20851b270fc9d759253/Userreport");
+                break;
+            case 'User Management9':
+                navigate("/9910c765099bd20851b270fc9d759253/Pinactivationreport");
+                break;
+        }
+        /*if(values === 'Master Management2'){
+           navigate("/9910c765099bd20851b270fc9d759253/Addoffer")  
+        }*/
+    }
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
 
@@ -188,31 +208,33 @@ const Navbar = () => {
         setOpen(false);
     };
     const onLogin = (e) => {
-        navigate('login');
+        navigate('/9910c765099bd20851b270fc9d759253/login');
         // handleDrawerClose();
     }
     const onRegister = (e) => {
-        navigate('register');
+        navigate('/9910c765099bd20851b270fc9d759253/register');
         // handleDrawerClose();
     }
     const onDashboard = (e) => {
-        navigate("Dashboard")
+        navigate("/9910c765099bd20851b270fc9d759253/Dashboard")
         // handleDrawerClose();
     }
     const onClick = (e) => {
         //  alert(e.target.value)
-        // navigate("")
+        // navigate("/9910c765099bd20851b270fc9d759253/")
         // handleDrawerClose();
     }
+
     ///side bar drawer code end
     const onLogout = async (e) => {
         await logout().then(response => {
-            if (response.status === 201) {
+            if (response.data.status) {
                 setUserid('');
                 logoutUser();
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                navigate('/login');
+                window.location.href = '/9910c765099bd20851b270fc9d759253/';
+                // navigate('/9910c765099bd20851b270fc9d759253/');
                 handleDrawerClose();
                 toast.success('GRIDX Admin is Logged out successfully!', {
                     position: "bottom-right",
@@ -255,9 +277,25 @@ const Navbar = () => {
             focused,
             handleExpansion,
             handleSelection,
-            preventSelection,
+            preventSelection
         } = useTreeItem(nodeId);
+        //only expand if icon was clicked
+      /*  const handleToggle = (event, nodeIds) => {
+            event.persist()
+            let iconClicked = event.target.closest(".MuiTreeItem-iconContainer")
+            if (iconClicked) {
+                setExpanded(nodeIds);
+            }
+        };
 
+        //only select if icon wasn't clicked
+        const handleSelect = (event, accountId) => {
+            event.persist()
+            let iconClicked = event.target.closest(".MuiTreeItem-iconContainer")
+            if (!iconClicked) {
+                setSelected(accountId);
+            }
+        };*/
         const icon = iconProp || expansionIcon || displayIcon;
 
         const handleMouseDown = (event) => {
@@ -330,39 +368,7 @@ const Navbar = () => {
          */
         nodeId: PropTypes.string.isRequired,
     };
-    const handlechange = async (values) => {
-        /*   if(values === 'Master Management3'){
-               alert(values)
-               navigate("Addnews");
-           }*/
-        //  alert(values)
-        switch (values) {
-            case 'Master Management2':
-                navigate("Addoffer");
-                break;
-            case 'Master Management3':
-                navigate("Addnews");
-                break;
-        /*    case 'Master Management4':
-                navigate("Addslider");
-                break;*/
-            case 'Fund Request2':
-                navigate("Fundrequest");
-                break;
-            case 'Fund Request3':
-                navigate("Pinactivation");
-                break;
-            case 'Withdrawl Request2':
-                navigate("Withdrawlrequest");
-                break;
-            case 'User Management3':
-                navigate("Userreport");
-                break;
-        }
-        /*if(values === 'Master Management2'){
-           navigate("Addoffer")  
-        }*/
-    }
+
     const CustomTreeItem = (props) => {
 
         const classes = useTreeItemStyles();
@@ -425,6 +431,7 @@ const Navbar = () => {
                         <CustomTreeItem nodeId="6" label="System Settings" onClick={(e) => handlechange(`${text}` + 6)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="7" label="Contact Request Report" onClick={(e) => handlechange(`${text}` + 7)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="8" label="Bonanza" onClick={(e) => handlechange(`${text}` + 8)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="9" label="Price Insert" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
                 {text === 'User Management' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
@@ -432,13 +439,13 @@ const Navbar = () => {
                         <CustomTreeItem nodeId="3" label="User Report" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="4" label="User Report(Balance)" onClick={(e) => handlechange(`${text}` + 4)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
 
-                        <CustomTreeItem nodeId="6" label="Direct Downline Report" onClick={(e) => handlechange(`${text}` + 6)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="7" label="User Login Report" onClick={(e) => handlechange(`${text}` + 7)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="5" label="Direct Downline Report" onClick={(e) => handlechange(`${text}` + 5)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="6" label="User Login Report" onClick={(e) => handlechange(`${text}` + 6)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
 
-                        <CustomTreeItem nodeId="9" label="Add Carry Forword" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="9" label="Add Carry Forword Report" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="7" label="Add Carry Forword" onClick={(e) => handlechange(`${text}` + 7)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="8" label="Add Carry Forword Report" onClick={(e) => handlechange(`${text}` + 8)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="9" label="User Topup Report" onClick={(e) => handlechange(`${text}` + 9)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="10" label="Binary Report" onClick={(e) => handlechange(`${text}` + 10)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="10" label="Tree Report" onClick={(e) => handlechange(`${text}` + 10)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
                 {text === 'Accounts' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
@@ -474,7 +481,7 @@ const Navbar = () => {
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
                         <CustomTreeItem nodeId="2" label="Fund Request Report" onClick={(e) => handlechange(`${text}` + 2)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                         <CustomTreeItem nodeId="3" label="User Activation" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
-                        <CustomTreeItem nodeId="4" label="User Activation Report" onClick={(e) => handlechange(`${text}` + 3)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
+                        <CustomTreeItem nodeId="4" label="Admin Activation Report" onClick={(e) => handlechange(`${text}` + 4)} sx={{ "& .MuiTreeItem-label": { fontSize: "0.8rem" } }} />
                     </CustomTreeItem></> : ''}
                 {text === 'Withdrawl Request' ? <>
                     <CustomTreeItem nodeId="1" label={text} sx={{ "& .MuiTreeItem-label": { fontSize: "1.0rem" } }}   >
@@ -507,7 +514,7 @@ const Navbar = () => {
         if (user_detail) {
             setUserid(user_detail._id);
             setUsername(user_detail.username);
-            // navigate("Dashboard");
+            // navigate("/9910c765099bd20851b270fc9d759253/Dashboard");
             setOpen(true);
         }
     }, [isLoggedIn]);
@@ -531,7 +538,9 @@ const Navbar = () => {
                     {/* <NavLink style={{ color: 'white' }} color="inherit" to="/join" className={`${!userId ? "mystyle" : ""}`} >Join</NavLink>&nbsp;&nbsp;
                     <NavLink style={{ color: 'white' }} to="/tree/:id" className={`${!userId ? "mystyle" : ""}`} >Tree</NavLink>&nbsp;&nbsp; */}
                     <NavLink style={{ color: 'white' }} onClick={(e) => onLogout(e)} className={`${!userId ? "mystyle" : ""}`} ><LogoutIcon /></NavLink>
-                    <NavLink style={{ color: 'white' }} to="/login" className={`${userId ? "mystyle" : ""}`} ><LoginIcon /></NavLink>
+                    <NavLink style={{ color: 'white' }} to="/9910c765099bd20851b270fc9d759253/" className={`${userId ? "mystyle" : ""}`} ><LoginIcon /></NavLink>
+                    {/* <NavLink style={{ color: 'white' }} to="/register" className={`${userId ? "mystyle" : ""}`} >Register</NavLink> */}
+
                 </Toolbar>
             </AppBar>
             {/*///side bar drawer code start*/}
@@ -555,15 +564,15 @@ const Navbar = () => {
                 </DrawerHeader>
                 <Typography style={{ marginLeft: '5%', color: '#2462bf', fontWeight: 'bold' }}  >General</Typography>
                 <Divider />
-                <List>
+                <List >
 
                     {userId && itemsListNotLoggedIn.map((item, index) => {
 
                         const { text, icon, onClick } = item;
                         // alert(text)
                         return (
-                            <ListItem key={text} onClick={onClick} >
-                                {icon && <ListItemIcon style={{ color: '#2462bf', width: '200px', }}>{icon}
+                            <ListItem key={text} onClick={onClick} style={{ width: '280px' }}>
+                                {icon && <ListItemIcon style={{ color: '#2462bf', width: '280px' }}>{icon}
                                     {text === 'Dashboard' && IconExpansionTreeView(item)}{/*?<>&nbsp;&nbsp;&nbsp;<ListItemText primary={text} /></>:''*/}
                                     {text === 'Master Management' && IconExpansionTreeView(item)}
                                     {text === 'User Management' && IconExpansionTreeView(item)}

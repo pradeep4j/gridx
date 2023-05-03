@@ -5,12 +5,13 @@ const bcrypt = require('bcryptjs');
 const { check, body, validationResult } = require('express-validator');
 const config = require('../config/config');
 const Users = require('../models/Users');
+const Admin = require('../models/Admin');
 var admincon = require("../controllers/AdminController");
 dotenv.config();
 var router = express.Router();
 router.post('/login', async (req, res) => {
         try {
-            const user = await Users.findOne({ username: req.body.username });
+            const user = await Admin.findOne({ username: req.body.username });
             if (!user) {
                 //next(createError(404,"User Not Found!"));
                 return res.send("404");
@@ -94,6 +95,24 @@ body('requestId').not().isEmpty().withMessage("The requestId field is required!"
     else {
         admincon.approveRejectWalletRequest(req, res, next);
     }
+});
+router.post('/updateSetting',
+body('type').not().isEmpty().withMessage("The type field is required!"),
+body('value').not().isEmpty().withMessage("The value rate field is required!"),
+(req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const err = errors?.array()[0]?.msg;
+            config.response(400,err,{},res);
+    }else {
+        admincon.updateSetting(req, res, next);
+    }
+});
+
+
+router.post('/getSetting',
+(req, res, next) => {
+    admincon.getSetting(req, res, next);
 });
 /*router.post('/login', 
 //body('email').not().isEmpty().withMessage("The email field is required!"),

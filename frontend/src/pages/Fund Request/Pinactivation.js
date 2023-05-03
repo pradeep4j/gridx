@@ -20,8 +20,8 @@ const Pinactivation = () => {
     const schema = Yup.object({
         gdxamount: Yup.number()
             .required('GDX amount is required!')
-            .min(50, "Amount should be minimum 50!")
-            .max(1000, "Amount should be maximum up to 1000!"),
+            .min(50, "Amount should be minimum 50!"),
+            // .max(1000, "Amount should be maximum up to 1000!"),
         //.matches(/^((50|[0-4]?[0-9])|\+?0*([0-9]{1,8}|1000))$/,"Amount must be a number between 50 and 1000!"),
         username: Yup.string('')
             .required('Username is required!')
@@ -158,7 +158,7 @@ const Pinactivation = () => {
 export default Pinactivation;
 const Container = styled(FormGroup)`
 width: 80%;
-margin: 3% auto 0 20%;
+margin: 3% auto 0 25%;
 & > div {
     margin-top:10px;
 }
